@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "jnoortheen.nix-ide",
+    "mkhl.direnv",
+    "tamasfe.even-better-toml",
+    "christian-kohler.path-intellisense",
+    "editorconfig.editorconfig",
+  ]
+}

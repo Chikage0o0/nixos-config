@@ -1,0 +1,24 @@
+{
+  username = "your_username";
+  userFullName = "Your Full Name";
+  userEmail = "your_email@example.com";
+  initialPassword = "your_password";
+  sshPublicKey = "your_ssh_public_key";
+
+  # 功能开关
+  isNvidia = false;
+  enableNetbird = true;
+
+  # Dae 配置
+  # 格式: { 节点名称 = "链接"; }
+  daeNodes = {
+    example_node = "vless://your_node_link";
+    # 可以添加更多节点，例如:
+    # hk_node = "vmess://...";
+  };
+
+  # 订阅链接列表
+  daeSubscriptions = [
+    # "https://example.com/subscribe"
+  ];
+}
