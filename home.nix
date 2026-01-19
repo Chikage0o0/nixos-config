@@ -54,7 +54,7 @@
       # 更新 geoip 和 geosite 数据
       update-geoip = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh";
       # 系统更新前先更新 geoip/geosite 数据
-      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake lock --update-input opencode && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
+      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake update opencode --flake ~/nixos-config && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
       # 清理 Nix 垃圾回收
       clean = "nix-collect-garbage -d";
     };
