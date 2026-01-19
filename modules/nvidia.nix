@@ -29,7 +29,6 @@
     };
 
     # 容器支持
-    virtualisation.docker.enableNvidia = true;
     hardware.nvidia-container-toolkit.enable = true;
 
     # NVIDIA 驱动配置

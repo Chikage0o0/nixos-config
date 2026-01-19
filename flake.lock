@@ -39,11 +39,11 @@
     "opencode": {
       "flake": false,
       "locked": {
-        "lastModified": 1768801828,
-        "narHash": "sha256-eQS402V6rEplBiCqCdiE01lW+tUSnTXl2jMa+ZCBzL8=",
+        "lastModified": 1768804378,
+        "narHash": "sha256-57h/qF+40NhlDu9t+O6xbvAGE4r0LliFo0Qaycc2UOc=",
         "owner": "Chikage0o0",
         "repo": "opencode",
-        "rev": "27ddd0c4f33ca9fd6878b9083613d3ca68979e24",
+        "rev": "b084b2ef53d67999f513223d1b744eeb30ce4d9a",
         "type": "github"
       },
       "original": {
