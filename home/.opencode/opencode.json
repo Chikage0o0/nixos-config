@@ -58,23 +58,26 @@
             "output": ["text"]
           },
           "variants": {
-            "nothinking": {
-              "options": {
-                "thinking": {
-                  "type": "disabled"
-                }
+            "thinking": {
+              "thinking": {
+                "type": "enabled"
               }
             },
-            "thinking": {
-              "options": {
-                "thinking": {
-                  "type": "enabled"
-                }
-              }
+            "low": {
+              "disabled": true
+            },
+            "medium": {
+              "disabled": true
+            },
+            "high": {
+              "disabled": true
             }
           },
           "options": {
-            "temperature": 0.1
+            "temperature": 0.1,
+            "thinking": {
+              "type": "disabled"
+            }
           }
         }
       }
