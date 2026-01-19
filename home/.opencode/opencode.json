@@ -38,6 +38,32 @@
     }
   },
   "provider": {
+    "volcengine": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "火山引擎模型",
+      "options": {
+        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3"
+      },
+      "models": {
+        "ark-code-latest": {
+          "id": "ark-code-latest",
+          "name": "Ark Code",
+          "reasoning": true,
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          },
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "options": {
+            "temperature": 0.1,
+            "thinking": { "type": "enabled" }
+          }
+        }
+      }
+    },
     "xiaomi": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "小米模型",
@@ -64,7 +90,7 @@
             "output": ["text"]
           },
           "options": {
-            "temperature": 0.3,
+            "temperature": 0.1,
             "thinking": {
               "type": "disabled"
             }
@@ -269,7 +295,12 @@
       }
     }
   },
-  "enabled_providers": ["google", "zhipuai-coding-plan", "xiaomi"],
+  "enabled_providers": [
+    "google",
+    "zhipuai-coding-plan",
+    "xiaomi",
+    "volcengine"
+  ],
   "agent": {
     "title": {
       "prompt": "你是一个专门负责总结对话标题的助手。请根据提供的对话内容，生成一个简短、准确且具有描述性的中文标题。要求：1. 不超过10个字；2. 避免使用“关于”、“总结”等废话；3. 直接输出标题内容。"
