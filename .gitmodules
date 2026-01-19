@@ -1,0 +1,3 @@
+[submodule "home/.opencode"]
+	path = home/.opencode
+	url = https://github.com/Chikage0o0/opencode.git
