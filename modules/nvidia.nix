@@ -28,6 +28,10 @@
       enable32Bit = true; # 启用 32 位图形库支持
     };
 
+    # 容器支持
+    virtualisation.docker.enableNvidia = true;
+    hardware.nvidia-container-toolkit.enable = true;
+
     # NVIDIA 驱动配置
     hardware.nvidia = {
       open = false; # 使用闭源驱动(开源驱动功能有限)
