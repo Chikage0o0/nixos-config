@@ -8,6 +8,11 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    opencode = {
+      url = "github:Chikage0o0/opencode";
+      flake = false;
+    };
   };
 
   outputs =

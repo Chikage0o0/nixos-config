@@ -2,6 +2,7 @@
   config,
   pkgs,
   vars,
+  inputs,
   ...
 }:
 
@@ -53,7 +54,7 @@
       # 更新 geoip 和 geosite 数据
       update-geoip = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh";
       # 系统更新前先更新 geoip/geosite 数据
-      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
+      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake lock --update-input opencode && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
       # 清理 Nix 垃圾回收
       clean = "nix-collect-garbage -d";
     };
@@ -108,14 +109,14 @@
   programs.lazygit.enable = true;
 
   home.file = {
-    ".config/opencode/skill/".source = home/.opencode/skill;
-    ".config/opencode/AGENTS.md".source = home/.opencode/AGENTS.md;
+    ".config/opencode/skill/".source = "${inputs.opencode}/skill";
+    ".config/opencode/AGENTS.md".source = "${inputs.opencode}/AGENTS.md";
   };
 
   programs.opencode = {
     enable = true;
     package = pkgs.opencode;
-    settings = builtins.fromJSON (builtins.readFile ./home/.opencode/opencode.json);
+    settings = builtins.fromJSON (builtins.readFile "${inputs.opencode}/opencode.json");
   };
 
   # ============================================================

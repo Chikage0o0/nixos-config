@@ -36,10 +36,27 @@
         "type": "github"
       }
     },
+    "opencode": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768801828,
+        "narHash": "sha256-eQS402V6rEplBiCqCdiE01lW+tUSnTXl2jMa+ZCBzL8=",
+        "owner": "Chikage0o0",
+        "repo": "opencode",
+        "rev": "27ddd0c4f33ca9fd6878b9083613d3ca68979e24",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Chikage0o0",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "opencode": "opencode"
       }
     }
   },
