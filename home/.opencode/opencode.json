@@ -57,9 +57,24 @@
             "input": ["text"],
             "output": ["text"]
           },
+          "variants": {
+            "nothinking": {
+              "options": {
+                "thinking": {
+                  "type": "disabled"
+                }
+              }
+            },
+            "thinking": {
+              "options": {
+                "thinking": {
+                  "type": "enabled"
+                }
+              }
+            }
+          },
           "options": {
-            "temperature": 0.1,
-            "thinking": { "type": "enabled" }
+            "temperature": 0.1
           }
         }
       }
@@ -90,10 +105,7 @@
             "output": ["text"]
           },
           "options": {
-            "temperature": 0.1,
-            "thinking": {
-              "type": "disabled"
-            }
+            "temperature": 0.1
           }
         }
       }
