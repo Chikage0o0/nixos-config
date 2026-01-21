@@ -9,9 +9,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    opencode = {
+    opencode-config = {
       url = "github:Chikage0o0/opencode";
       flake = false;
+    };
+
+    opencode = {
+      url = "github:anomalyco/opencode/v1.1.28";
     };
   };
 

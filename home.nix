@@ -54,7 +54,7 @@
       # 更新 geoip 和 geosite 数据
       update-geoip = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh";
       # 系统更新前先更新 geoip/geosite 数据
-      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake update opencode --flake ~/nixos-config && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
+      update = "bash ~/nixos-config/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake update opencode-config --flake ~/nixos-config && nix flake update opencode --flake ~/nixos-config && sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine --impure";
       # 清理 Nix 垃圾回收
       clean = "nix-collect-garbage -d";
     };
@@ -109,14 +109,14 @@
   programs.lazygit.enable = true;
 
   home.file = {
-    ".config/opencode/skill/".source = "${inputs.opencode}/skill";
-    ".config/opencode/AGENTS.md".source = "${inputs.opencode}/AGENTS.md";
+    ".config/opencode/skill/".source = "${inputs.opencode-config}/skill";
+    ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
   };
 
   programs.opencode = {
     enable = true;
-    package = pkgs.opencode;
-    settings = builtins.fromJSON (builtins.readFile "${inputs.opencode}/opencode.json");
+    package = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    settings = builtins.fromJSON (builtins.readFile "${inputs.opencode-config}/opencode.json");
   };
 
   # ============================================================

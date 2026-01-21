@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768598210,
-        "narHash": "sha256-kkgA32s/f4jaa4UG+2f8C225Qvclxnqs76mf8zvTVPg=",
+        "lastModified": 1768942641,
+        "narHash": "sha256-i25tkhqjsfo0YKz8To/+gzazW1v4f8qUGqJQ8OLrkqE=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "c47b2cc64a629f8e075de52e4742de688f930dc6",
+        "rev": "9997de2f62d1875644f02ddf96cf485a4baecb6f",
         "type": "github"
       },
       "original": {
@@ -36,14 +36,49 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1768569498,
+        "narHash": "sha256-bB6Nt99Cj8Nu5nIUq0GLmpiErIT5KFshMQJGMZwgqUo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "be5afa0fcb31f0a96bf9ecba05a516c66fcd8114",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "opencode": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1768946652,
+        "narHash": "sha256-4WJs+JAmelroxvxRyTscbPGw5ryrELTri8nTy/YZAnU=",
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "d2fcdef571464c64668062718f3dceec0e79fbeb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "ref": "v1.1.28",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
+    "opencode-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1768804378,
-        "narHash": "sha256-57h/qF+40NhlDu9t+O6xbvAGE4r0LliFo0Qaycc2UOc=",
+        "lastModified": 1768963061,
+        "narHash": "sha256-7wDL8wjUb3RLeKAGq76Sr4x2Cpg7KzxftZssHGmP8QU=",
         "owner": "Chikage0o0",
         "repo": "opencode",
-        "rev": "b084b2ef53d67999f513223d1b744eeb30ce4d9a",
+        "rev": "447a7ad102183cec7a226952c86e3fed9266a14a",
         "type": "github"
       },
       "original": {
@@ -56,7 +91,8 @@
       "inputs": {
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
-        "opencode": "opencode"
+        "opencode": "opencode",
+        "opencode-config": "opencode-config"
       }
     }
   },

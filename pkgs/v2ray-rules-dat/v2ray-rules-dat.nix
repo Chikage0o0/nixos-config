@@ -8,18 +8,18 @@ stdenv.mkDerivation rec {
   pname = "v2ray-rules-dat";
   # 使用最新的 release 版本号
   # 可以通过运行 ./pkgs/update-v2ray-rules-dat.sh 来更新版本和 hash
-  version = "202601182215";
+  version = "202601202217";
 
   # 从 GitHub Releases 下载 geoip.dat
   geoip = fetchurl {
     url = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${version}/geoip.dat";
-    sha256 = "d82b479c66a65ef2717489f4f41ef0901095469b5b1825200f0fdcac23e0879d";
+    sha256 = "1b205f743e042b1e0bd37b0010b2324854301415dbce598256bf307338e68c3a";
   };
 
   # 从 GitHub Releases 下载 geosite.dat
   geosite = fetchurl {
     url = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${version}/geosite.dat";
-    sha256 = "9e4cc98d8127d094533ffe8c6a8a458ee8a873282ce03c5a32c9d65280e26b1a";
+    sha256 = "d02cd9d05c5d462be821bc067d6c0fb173f2083cef06642ad21ac7c72799d4dd";
   };
 
   dontUnpack = true;
