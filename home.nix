@@ -109,7 +109,7 @@
   programs.lazygit.enable = true;
 
   home.file = {
-    ".config/opencode/skill/".source = "${inputs.opencode-config}/skill";
+    ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
   };
 
