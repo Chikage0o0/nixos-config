@@ -111,6 +111,10 @@
   home.file = {
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
+    ".config/opencode/dcp.jsonc" = {
+      source = "${inputs.opencode-config}/dcp.jsonc";
+      force = true;
+    };
   };
 
   programs.opencode = {
