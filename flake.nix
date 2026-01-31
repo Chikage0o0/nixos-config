@@ -15,7 +15,7 @@
     };
 
     opencode = {
-      url = "github:anomalyco/opencode/production";
+      url = "github:anomalyco/opencode/v1.1.47";
     };
   };
 
