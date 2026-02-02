@@ -21,4 +21,9 @@
   daeSubscriptions = [
     # "https://example.com/subscribe"
   ];
+
+  # Hosts 配置
+  extraHosts = {
+    # "1.1.1.1" = [ "example.com" ];
+  };
 }

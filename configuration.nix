@@ -30,6 +30,8 @@
   # ============================================================
   networking.hostName = "dev-machine";
   networking.networkmanager.enable = true;
+  # 添加自定义 Hosts 映射
+  networking.hosts = vars.extraHosts or { };
   time.timeZone = "Asia/Shanghai";
 
   # NetBird VPN 配置
