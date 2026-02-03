@@ -1,6 +1,9 @@
 # NixOS Hardware Configuration
 hardware-configuration.nix
 
+# Local configuration variables
+vars.nix
+
 # Nix build results
 result
 result-*
