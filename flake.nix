@@ -29,12 +29,35 @@
     let
       system = "x86_64-linux";
 
-      baseVars = import ./vars.nix.example;
+      # vars.nix 被 .gitignore 忽略时，Flake 的源码快照里是“看不见”的。
+      # 这里从真实文件系统读取：默认推导为 /home/<真实用户>/nixos-config/vars.nix。
+      # 如需自定义路径，仍可用环境变量覆盖：NIXOS_CONFIG_DIR=/some/dir。
+      varsPath =
+        let
+          # sudo 执行时 HOME/USER 往往会变成 root，这里优先用 SUDO_USER 还原真实用户。
+          sudoUser = builtins.getEnv "SUDO_USER";
+          homeFromEnv = builtins.getEnv "HOME";
+          userHome =
+            if sudoUser != "" then
+              "/home/${sudoUser}"
+            else if homeFromEnv != "" then
+              homeFromEnv
+            else
+              "/home/${builtins.getEnv "USER"}";
 
-      # ⚠️ 注意：如果使用 Flakes，必须运行 `git add -N vars.nix` 才能让 Nix 看见此文件
-      localVars = if builtins.pathExists ./vars.nix then import ./vars.nix else { };
+          configDirStr =
+            let
+              v = builtins.getEnv "NIXOS_CONFIG_DIR";
+            in
+            if v != "" then v else "${userHome}/nixos-config";
+        in
+        /. + "${configDirStr}/vars.nix";
 
-      vars = baseVars // localVars;
+      vars =
+        if builtins.pathExists varsPath then
+          import varsPath
+        else
+          throw "未找到 vars.nix：${toString varsPath}（请创建该文件或检查 NIXOS_CONFIG_DIR）";
 
     in
     {

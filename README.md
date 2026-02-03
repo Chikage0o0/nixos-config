@@ -24,7 +24,8 @@
 ```bash
 nixos-config/
 ├── flake.nix             # Flakes 入口，定义依赖与系统节点
-├── vars.nix              # 核心配置文件 (用户自定义变量) 🚀
+├── vars.nix.example      # vars 模板 (可复制为本地 vars.nix)
+├── vars.nix              # 本地私有配置 (建议放入 .gitignore，不提交)
 ├── configuration.nix     # 系统级配置 (内核、网络、基础服务)
 ├── home.nix              # 用户级配置 (Home Manager, CLI, Git)
 ├── modules/
@@ -39,18 +40,28 @@ nixos-config/
 
 ## 🛠️ 快速开始
 
-### 1. 初始化配置
+### 1. 首次安装：必须放置到固定路径（默认）
 
-克隆仓库到本地：
+本配置默认会从真实文件系统读取 `vars.nix`，并自动推导路径为：
+
+- `/home/<真实用户>/nixos-config/vars.nix`
+
+因此首次安装请把仓库克隆到 `~/nixos-config`：
 
 ```bash
 git clone https://github.com/your-username/nixos-config.git ~/nixos-config
 cd ~/nixos-config
 ```
 
+如果你不想放在 `~/nixos-config`，也可以用环境变量覆盖（见第 3 步）。
+
 ### 2. 自定义 `vars.nix`
 
-`vars.nix` 已包含在 Git 跟踪中作为配置模板。请直接编辑该文件，填写你的个人信息。这是本项目**唯一**需要手动修改的地方：
+`vars.nix` 建议保持为本地私有文件（可被 `.gitignore` 忽略）。请从模板创建并填写你的个人信息：
+
+```bash
+cp vars.nix.example vars.nix
+```
 
 ```nix
 {
@@ -63,11 +74,7 @@ cd ~/nixos-config
 }
 ```
 
-> **重要提示**: 为了防止本地的 `vars.nix` 修改被意外提交到 Git 仓库，请在修改后执行以下命令：
->
-> ```bash
-> git update-index --skip-worktree vars.nix
-> ```
+> 说明：本项目的 `flake.nix` 会直接从文件系统读取 `vars.nix`，因此即使 `vars.nix` 被 `.gitignore` 忽略也不会影响使用。
 
 ### 3. 应用并部署
 
@@ -76,6 +83,14 @@ cd ~/nixos-config
 ```bash
 # 部署系统 (节点名为 dev-machine)
 sudo nixos-rebuild switch --flake .#dev-machine --impure
+```
+
+如果你的仓库不在 `~/nixos-config`，请用 `NIXOS_CONFIG_DIR` 覆盖 `vars.nix` 所在目录（并保留环境变量给 sudo）：
+
+```bash
+NIXOS_CONFIG_DIR="/path/to/nixos-config" \
+  sudo --preserve-env=NIXOS_CONFIG_DIR \
+  nixos-rebuild switch --flake /path/to/nixos-config#dev-machine --impure
 ```
 
 ---
