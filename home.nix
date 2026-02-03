@@ -111,16 +111,15 @@
   home.file = {
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
-    ".config/opencode/dcp.jsonc" = {
-      source = "${inputs.opencode-config}/dcp.jsonc";
-      force = true;
-    };
+    ".config/opencode/plugins/".source = "${inputs.opencode-config}/plugins";
   };
 
   programs.opencode = {
     enable = true;
     package = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    settings = builtins.fromJSON (builtins.readFile "${inputs.opencode-config}/opencode.json");
+    settings = pkgs.lib.recursiveUpdate (builtins.fromJSON (
+      builtins.readFile "${inputs.opencode-config}/opencode.json"
+    )) (vars.opencodeSettings or { });
   };
 
   # ============================================================

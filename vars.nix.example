@@ -26,4 +26,9 @@
   extraHosts = {
     # "1.1.1.1" = [ "example.com" ];
   };
+
+  # Opencode 自定义配置
+  opencodeSettings = {
+    # key = "value";
+  };
 }
