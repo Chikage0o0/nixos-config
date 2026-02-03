@@ -30,28 +30,37 @@
       system = "x86_64-linux";
 
       # vars.nix 被 .gitignore 忽略时，Flake 的源码快照里是“看不见”的。
-      # 这里从真实文件系统读取：默认推导为 /home/<真实用户>/nixos-config/vars.nix。
-      # 如需自定义路径，仍可用环境变量覆盖：NIXOS_CONFIG_DIR=/some/dir。
+      # 因此这里从真实文件系统读取（需要 `--impure`）。
+      # 查找优先级：
+      # 1) NIXOS_CONFIG_DIR=/some/dir
+      # 2) 当前工作目录(PWD)下的 vars.nix（便于 root 直接在仓库目录里执行）
+      # 3) sudo 场景用 SUDO_USER 还原真实用户：/home/<SUDO_USER>/nixos-config/vars.nix
+      # 4) 普通用户用 HOME：$HOME/nixos-config/vars.nix
       varsPath =
         let
-          # sudo 执行时 HOME/USER 往往会变成 root，这里优先用 SUDO_USER 还原真实用户。
-          sudoUser = builtins.getEnv "SUDO_USER";
-          homeFromEnv = builtins.getEnv "HOME";
-          userHome =
-            if sudoUser != "" then
-              "/home/${sudoUser}"
-            else if homeFromEnv != "" then
-              homeFromEnv
-            else
-              "/home/${builtins.getEnv "USER"}";
+          env = builtins.getEnv;
+          mkPath = p: /. + p;
+          opt = cond: p: if cond then [ (mkPath p) ] else [ ];
 
-          configDirStr =
-            let
-              v = builtins.getEnv "NIXOS_CONFIG_DIR";
-            in
-            if v != "" then v else "${userHome}/nixos-config";
+          nixosConfigDir = env "NIXOS_CONFIG_DIR";
+          pwd = env "PWD";
+          sudoUser = env "SUDO_USER";
+          homeFromEnv = env "HOME";
+          userFromEnv = env "USER";
+
+          candidates =
+            (opt (nixosConfigDir != "") "${nixosConfigDir}/vars.nix")
+            ++ (opt (pwd != "") "${pwd}/vars.nix")
+            ++ (opt (sudoUser != "") "/home/${sudoUser}/nixos-config/vars.nix")
+            ++ (opt (homeFromEnv != "" && homeFromEnv != "/root") "${homeFromEnv}/nixos-config/vars.nix")
+            ++ (opt (userFromEnv != "" && userFromEnv != "root") "/home/${userFromEnv}/nixos-config/vars.nix");
+
+          existing = builtins.filter builtins.pathExists candidates;
         in
-        /. + "${configDirStr}/vars.nix";
+        if existing != [ ] then
+          builtins.head existing
+        else
+          throw "未找到 vars.nix（需要 `--impure`）：请在仓库目录放置 vars.nix，或设置 NIXOS_CONFIG_DIR=/path/to/nixos-config";
 
       vars =
         if builtins.pathExists varsPath then
