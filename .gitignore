@@ -4,6 +4,9 @@ hardware-configuration.nix
 # Local configuration variables
 vars.nix
 
+# SSH keys
+ssh-keys
+
 # Nix build results
 result
 result-*
