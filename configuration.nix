@@ -4,7 +4,9 @@
   vars,
   ...
 }:
-
+let
+  netbirdActive = (!vars.isWSL) && vars.enableNetbird;
+in
 {
   imports = [
     /etc/nixos/hardware-configuration.nix
@@ -15,41 +17,45 @@
   # 硬件特性开关
   # ============================================================
   # 是否启用 NVIDIA 显卡支持
-  hardware.nvidia.enable = vars.isNvidia;
+  hardware.nvidia.enable = (!vars.isWSL) && vars.isNvidia;
 
   # ============================================================
   # 1. 引导与内核配置
   # ============================================================
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.enable = !vars.isWSL;
   boot.loader.systemd-boot.configurationLimit = 3; # 限制 EFI 分区中保留的引导条目数量
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.efi.canTouchEfiVariables = !vars.isWSL;
   boot.kernelPackages = pkgs.linuxPackages_6_18; # 使用较新内核以获得更好的硬件支持
 
   # ============================================================
   # 2. 网络与时区配置
   # ============================================================
   networking.hostName = "dev-machine";
-  networking.networkmanager.enable = true;
+  networking.networkmanager.enable = !vars.isWSL;
   # 添加自定义 Hosts 映射
   networking.hosts = vars.extraHosts or { };
   time.timeZone = "Asia/Shanghai";
 
   # NetBird VPN 配置
-  services.netbird.enable = vars.enableNetbird;
+  services.netbird.enable = netbirdActive;
 
   # 防火墙配置
   networking.firewall = {
-    enable = true;
+    enable = !vars.isWSL;
     # NetBird 所需端口
-    allowedUDPPorts = [
-      3478 # STUN 端口(用于 NAT 穿透)
-      51820 # WireGuard 端口(NetBird 使用的 VPN 协议)
-    ];
+    allowedUDPPorts =
+      if netbirdActive then
+        [
+          3478 # STUN 端口(用于 NAT 穿透)
+          51820 # WireGuard 端口(NetBird 使用的 VPN 协议)
+        ]
+      else
+        [ ];
     # 如需开放其他 TCP 端口，可在此添加
     # allowedTCPPorts = [ ];
 
     # 信任 NetBird VPN 网卡，允许 VPN 内部流量
-    trustedInterfaces = [ "wt0" ];
+    trustedInterfaces = if netbirdActive then [ "wt0" ] else [ ];
   };
 
   # ============================================================
@@ -160,7 +166,7 @@
   # 9. 网络代理服务
   # ============================================================
   services.dae = {
-    enable = true;
+    enable = (!vars.isWSL) && vars.enableDae;
     configFile = pkgs.writeText "config.dae" (
       import ./dae/config.nix {
         nodes = vars.daeNodes;

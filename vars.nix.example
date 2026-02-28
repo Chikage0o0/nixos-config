@@ -6,8 +6,10 @@
   sshPublicKey = "your_ssh_public_key";
 
   # 功能开关
+  isWSL = false;
   isNvidia = false;
   enableNetbird = true;
+  enableDae = false;
 
   # Dae 配置
   # 格式: { 节点名称 = "链接"; }
