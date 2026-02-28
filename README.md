@@ -23,13 +23,33 @@
 
 ```bash
 nixos-config/
-├── flake.nix             # Flakes 入口，定义依赖与系统节点
+├── flake.nix             # Flakes 入口，仅负责装配
 ├── vars.nix.example      # vars 模板 (可复制为本地 vars.nix)
 ├── vars.nix              # 本地私有配置 (建议放入 .gitignore，不提交)
-├── configuration.nix     # 系统级配置 (内核、网络、基础服务)
-├── home.nix              # 用户级配置 (Home Manager, CLI, Git)
+├── hosts/
+│   └── dev-machine/
+│       └── default.nix   # 主机入口
 ├── modules/
-│   └── nvidia.nix        # NVIDIA 显卡与 CUDA 驱动模块
+│   ├── nixos/
+│   │   ├── default.nix   # 系统模块聚合入口
+│   │   ├── base.nix
+│   │   ├── network.nix
+│   │   ├── users.nix
+│   │   ├── virtualisation.nix
+│   │   ├── packages.nix
+│   │   ├── hardware/
+│   │   │   └── nvidia.nix
+│   │   └── services/
+│   │       ├── dae.nix
+│   │       └── openssh.nix
+│   └── home/
+│       ├── default.nix   # Home Manager 模块聚合入口
+│       ├── base.nix
+│       ├── git.nix
+│       ├── shell.nix
+│       ├── cli-tools.nix
+│       ├── opencode.nix
+│       └── packages.nix
 ├── dae/
 │   └── config.nix        # dae 透明代理分流逻辑
 └── pkgs/

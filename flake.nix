@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     opencode-config = {
       url = "github:Chikage0o0/opencode";
       flake = false;
@@ -76,7 +81,7 @@
         specialArgs = { inherit inputs vars; };
 
         modules = [
-          ./configuration.nix
+          ./hosts/dev-machine/default.nix
 
           # 针对 CUDA 开发环境的建议：在 Flake 层级允许非自由软件
           { nixpkgs.config.allowUnfree = true; }
@@ -87,7 +92,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = { inherit inputs vars; };
-            home-manager.users.${vars.username} = import ./home.nix;
+            home-manager.users.${vars.username} = import ./modules/home;
           }
         ];
       };

@@ -1,5 +1,7 @@
 {
   username = "your_username";
+  hostName = "dev-machine";
+  configDir = "~/nixos-config";
   userFullName = "Your Full Name";
   userEmail = "your_email@example.com";
   initialPassword = "your_password";
