@@ -96,6 +96,38 @@ cp vars.nix.example vars.nix
 
 > 说明：本项目的 `flake.nix` 会直接从文件系统读取 `vars.nix`，因此即使 `vars.nix` 被 `.gitignore` 忽略也不会影响使用。
 
+### 2.1 配置并自动加载 `ssh-keys`
+
+系统会在 zsh 启动时自动确保 `ssh-agent` 可用，并尝试加载 `sshKeysDir` 目录中的私钥文件（会跳过 `*.pub`、`*.txt`、`*.md`）。
+
+1. 在 `vars.nix` 中设置密钥目录（可选，不填时默认 `~/nixos-config/ssh-keys`）：
+
+```nix
+{
+  sshKeysDir = "~/nixos-config/ssh-keys";
+}
+```
+
+2. 创建目录并放入私钥（不要提交到 Git）：
+
+```bash
+mkdir -p ~/nixos-config/ssh-keys
+cp ~/.ssh/your_signing_key ~/nixos-config/ssh-keys/private.key
+```
+
+3. 修正权限（否则 OpenSSH 会拒绝加载）：
+
+```bash
+chmod 700 ~/nixos-config/ssh-keys
+chmod 600 ~/nixos-config/ssh-keys/private.key
+```
+
+4. 重新打开终端后可验证：
+
+```bash
+ssh-add -l
+```
+
 ### 3. 应用并部署
 
 执行以下命令应用配置（首次执行需 `sudo`）：

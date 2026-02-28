@@ -8,5 +8,14 @@
   },
   "tools": {
     "nixos": true
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      "vars.nix": "deny",
+      "*/vars.nix": "deny",
+      "ssh-keys/*": "deny",
+      "*/ssh-keys/*": "deny"
+    }
   }
 }
