@@ -2,13 +2,13 @@
   config,
   lib,
   pkgs,
-  vars,
+  varsExt,
   ...
 }:
 {
   options.hardware.nvidia.enable = lib.mkOption {
     type = lib.types.bool;
-    default = (!vars.isWSL) && vars.isNvidia;
+    default = (!varsExt.isWSL) && varsExt.isNvidia;
     description = "是否启用 NVIDIA 显卡支持";
   };
 

@@ -1,27 +1,27 @@
 {
   pkgs,
-  vars,
+  varsExt,
   ...
 }:
 {
-  users.users.${vars.username} = {
+  users.users.${varsExt.username} = {
     isNormalUser = true;
-    description = vars.userFullName;
+    description = varsExt.userFullName;
     extraGroups = [
       "networkmanager"
       "wheel"
       "docker"
     ];
     shell = pkgs.zsh;
-    initialPassword = vars.initialPassword;
+    initialPassword = varsExt.initialPassword;
     openssh.authorizedKeys.keys = [
-      vars.sshPublicKey
+      varsExt.sshPublicKey
     ];
   };
 
   security.sudo.extraRules = [
     {
-      users = [ vars.username ];
+      users = [ varsExt.username ];
       commands = [
         {
           command = "ALL";

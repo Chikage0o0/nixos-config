@@ -1,6 +1,6 @@
 {
   pkgs,
-  vars,
+  varsExt,
   ...
 }:
 {
@@ -8,9 +8,9 @@
     enable = true;
     settings = {
       user = {
-        name = vars.userFullName;
-        email = vars.userEmail;
-        signingKey = vars.sshPublicKey;
+        name = varsExt.userFullName;
+        email = varsExt.userEmail;
+        signingKey = varsExt.sshPublicKey;
       };
       init.defaultBranch = "main";
       gpg.format = "ssh";

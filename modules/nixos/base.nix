@@ -1,14 +1,14 @@
 {
   pkgs,
-  vars,
+  varsExt,
   ...
 }:
 {
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
-  boot.loader.systemd-boot.enable = !vars.isWSL;
+  boot.loader.systemd-boot.enable = !varsExt.isWSL;
   boot.loader.systemd-boot.configurationLimit = 3;
-  boot.loader.efi.canTouchEfiVariables = !vars.isWSL;
+  boot.loader.efi.canTouchEfiVariables = !varsExt.isWSL;
   boot.kernelPackages = pkgs.linuxPackages_6_18;
 
   nix.settings = {
@@ -16,7 +16,7 @@
       "nix-command"
       "flakes"
     ];
-    max-jobs = vars.nixMaxJobs or "auto";
+    max-jobs = varsExt.nixMaxJobs;
     substituters = [
       "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://cache.nixos.org"
@@ -28,7 +28,7 @@
     ];
     trusted-users = [
       "root"
-      vars.username
+      varsExt.username
     ];
   };
 

@@ -1,15 +1,15 @@
 {
   pkgs,
-  vars,
+  varsExt,
   ...
 }:
 {
   services.dae = {
-    enable = (!vars.isWSL) && vars.enableDae;
+    enable = (!varsExt.isWSL) && varsExt.enableDae;
     configFile = pkgs.writeText "config.dae" (
       import ../../../dae/config.nix {
-        nodes = vars.daeNodes;
-        subscriptions = vars.daeSubscriptions;
+        nodes = varsExt.daeNodes;
+        subscriptions = varsExt.daeSubscriptions;
       }
     );
     assets = [

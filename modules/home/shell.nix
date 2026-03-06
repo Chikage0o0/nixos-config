@@ -1,12 +1,12 @@
 {
-  vars,
+  varsExt,
   pkgs,
   ...
 }:
 let
-  configDir = vars.configDir or "~/nixos-config";
-  sshKeysDir = vars.sshKeysDir or "${configDir}/ssh-keys";
-  hostName = vars.hostName or "dev-machine";
+  configDir = varsExt.configDir;
+  sshKeysDir = varsExt.sshKeysDir;
+  hostName = varsExt.hostName;
 in
 {
   programs.zsh = {

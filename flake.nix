@@ -74,12 +74,37 @@
         else
           throw "未找到 vars.nix：${toString varsPath}（请创建该文件或检查 NIXOS_CONFIG_DIR）";
 
+      varsExt = rec {
+        username = vars.username;
+        userFullName = vars.userFullName;
+        userEmail = vars.userEmail;
+        initialPassword = vars.initialPassword;
+        sshPublicKey = vars.sshPublicKey;
+
+        hostName = vars.hostName or "dev-machine";
+        configDir = vars.configDir or "~/nixos-config";
+        sshKeysDir = vars.sshKeysDir or "${configDir}/ssh-keys";
+        nixMaxJobs = vars.nixMaxJobs or "auto";
+
+        isWSL = vars.isWSL or false;
+        isNvidia = vars.isNvidia or false;
+        enableNetbird = vars.enableNetbird or false;
+        enableDae = vars.enableDae or false;
+
+        daeNodes = vars.daeNodes or { };
+        daeSubscriptions = vars.daeSubscriptions or [ ];
+        extraHosts = vars.extraHosts or { };
+        opencodeSettings = vars.opencodeSettings or { };
+      };
+
     in
     {
       nixosConfigurations.dev-machine = nixpkgs.lib.nixosSystem {
         inherit system;
 
-        specialArgs = { inherit inputs vars; };
+        specialArgs = {
+          inherit inputs vars varsExt;
+        };
 
         modules = [
           ./hosts/dev-machine/default.nix
@@ -92,8 +117,10 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { inherit inputs vars; };
-            home-manager.users.${vars.username} = import ./modules/home;
+            home-manager.extraSpecialArgs = {
+              inherit inputs vars varsExt;
+            };
+            home-manager.users.${varsExt.username} = import ./modules/home;
           }
         ];
       };

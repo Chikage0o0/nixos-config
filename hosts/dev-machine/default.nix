@@ -1,6 +1,6 @@
 {
   lib,
-  vars,
+  varsExt,
   inputs,
   ...
 }:
@@ -8,16 +8,16 @@
   imports = [
     ../../modules/nixos
   ]
-  ++ lib.optionals vars.isWSL [ inputs.nixos-wsl.nixosModules.default ]
-  ++ (if vars.isWSL then [ ] else [ /etc/nixos/hardware-configuration.nix ]);
+  ++ lib.optionals varsExt.isWSL [ inputs.nixos-wsl.nixosModules.default ]
+  ++ (if varsExt.isWSL then [ ] else [ /etc/nixos/hardware-configuration.nix ]);
 
-  networking.hostName = vars.hostName or "dev-machine";
+  networking.hostName = varsExt.hostName;
 
 }
-// lib.optionalAttrs vars.isWSL {
+// lib.optionalAttrs varsExt.isWSL {
   wsl = {
     enable = true;
-    defaultUser = vars.username or "nixos";
+    defaultUser = varsExt.username;
     interop.register = true;
   };
 }
