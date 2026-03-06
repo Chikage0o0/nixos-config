@@ -8,6 +8,9 @@
   initialPassword = "your_password";
   sshPublicKey = "your_ssh_public_key";
 
+  # Nix 构建配置
+  nixMaxJobs = 4;
+
   # 功能开关
   isWSL = false;
   isNvidia = false;

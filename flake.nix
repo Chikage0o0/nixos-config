@@ -19,6 +19,10 @@
       flake = false;
     };
 
+    opencode = {
+      url = "github:anomalyco/opencode/v1.2.19";
+    };
+
   };
 
   outputs =

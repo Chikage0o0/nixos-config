@@ -14,7 +14,7 @@
 
   programs.opencode = {
     enable = true;
-    package = pkgs.opencode;
+    package = inputs.opencode.packages.${pkgs.system}.default;
     settings = pkgs.lib.recursiveUpdate (builtins.fromJSON (
       builtins.readFile "${inputs.opencode-config}/opencode.json"
     )) (vars.opencodeSettings or { });

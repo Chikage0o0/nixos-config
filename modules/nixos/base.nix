@@ -14,6 +14,7 @@
       "nix-command"
       "flakes"
     ];
+    max-jobs = vars.nixMaxJobs or "auto";
     substituters = [
       "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://cache.nixos.org"
