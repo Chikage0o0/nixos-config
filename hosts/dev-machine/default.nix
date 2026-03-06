@@ -18,5 +18,6 @@
   wsl = {
     enable = true;
     defaultUser = vars.username or "nixos";
+    interop.register = true;
   };
 }
