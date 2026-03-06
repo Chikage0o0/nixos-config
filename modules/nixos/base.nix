@@ -4,6 +4,8 @@
   ...
 }:
 {
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   boot.loader.systemd-boot.enable = !vars.isWSL;
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = !vars.isWSL;
