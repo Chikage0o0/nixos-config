@@ -107,7 +107,7 @@
       # uTLS 模拟的 Client Hello ID。仅当 tls_implementation 为 utls 时生效。
       utls_imitate: chrome_auto
 
-   
+
       # 多路径 TCP (MPTCP) 支持。
       # 开启后，如果节点支持，dae 将尝试使用 MPTCP 连接。可用于多网口/多 IP 的负载均衡和故障转移。
       mptcp: false
@@ -155,18 +155,10 @@
       # bind: 'udp://127.0.0.1:5353'
 
       upstream {
-          # 定义上游 DNS 服务器。
-          # scheme 支持: tcp/udp/tcp+udp/h3/http3/quic/https/tls。
-          # 建议：如果 dial_mode 为 "ip"，且在没有 routing 规则的情况下，国内 DNS 不建议设为直连，以免污染。
-
-          alidns: 'udp://dns.alidns.com:53'
-          googledns: 'tcp+udp://dns.google:53'
-
-          # 更多示例：
-          # ali_doh: 'https://dns.alidns.com:443'
-          # ali_dot: 'tls://dns.alidns.com:853'
+          alidns: 'https://dns.alidns.com/dns-query'
+          googledns: 'https://dns.google/dns-query'
       }
-      
+
       routing {
           # DNS 请求路由：根据请求内容决定使用哪个上游 DNS。
           # 规则从上到下匹配。
@@ -177,75 +169,22 @@
               fallback: googledns
           }
       }
-      
-      # 响应路由示例（通常不需要配置，除非有高级需求）：
-  #    routing {
-  #        response {
-  #            # 信任 Google DNS 的结果
-  #            upstream(googledns) -> accept
-  #            # 如果结果是私有 IP 但域名不是 CN 的，可能被污染了，强制用 Google DNS 再查一次
-  #            ip(geoip:private) && !qname(geosite:cn) -> googledns
-  #            fallback: accept
-  #        }
-  #    }
   }
 
   # 节点组 (出站分组)
   group {
-      my_group {
-          # 没有过滤器，使用所有节点。
-
-          # 策略：随机选择
-          #policy: random
-
-          # 策略：固定选择第一个节点
-          #policy: fixed(0)
-
-          # 策略：选择延迟最低的节点
-          #policy: min
-
+      proxy {
           # 策略：选择移动平均延迟最低的节点 (推荐，更平滑)
           policy: min_moving_avg
-      }
-
-      group2 {
-          # 过滤器：只选择 subtag 为 my_sub 且名字不含 'ExpireAt:' 的节点
-          #filter: subtag(my_sub) && !name(keyword: 'ExpireAt:')
-          
-          # 多行 filter 是 "或" (OR) 的关系
-          #filter: subtag(regex: '^my_', another_sub) && !name(keyword: 'ExpireAt:')
-
-          # 根据节点名称筛选
-          #filter: name(node1, node2)
-
-          # 带有延迟偏移的筛选 (用于故障转移偏好)。
-          # 示例：即使 US 节点延迟较高，但减去 500ms 后可能比 HK 节点更“快”，从而被选中。
-          filter: name(HK_node)
-          filter: name(US_node) [add_latency: -500ms]
-
-          # 策略：最近 10 次延迟的平均值最小
-          policy: min_avg10
-      }
-
-      steam {
-          filter: subtag(my_sub) && !name(keyword: 'ExpireAt:')
-          policy: min_moving_avg
-
-          # 覆盖全局的连通性检查设置，针对 Steam 进行优化
-          tcp_check_url: 'http://test.steampowered.com'
       }
   }
 
   # 流量路由规则 (Routing)
   # 详情：https://github.com/daeuniverse/dae/blob/main/docs/en/configuration/routing.md
   routing {
-      ### 预设规则
-
       # 本机网络管理器直连，避免绑定 WAN 接口时出现连通性误报。
       pname(NetworkManager, systemd-resolved, dnsmasq, netbird) -> direct
 
-      # 放在最前面，防止广播、组播等局域网流量被代理转发。
-      # dip = destination IP (目标 IP)
       dip(224.0.0.0/3, 'ff00::/8', 100.64.0.0/16) -> direct
 
       # 私有地址 (局域网 IP) 直连。
@@ -257,14 +196,12 @@
       # 屏蔽 UDP 443 端口 (通常是 HTTP/3 QUIC)。
       # 因为 QUIC 经常导致 Youtube 等流媒体分流困难或消耗过多资源，屏蔽后浏览器会回退到 TCP (HTTP/2)。
       l4proto(udp) && dport(443) -> block
-      
+
       # 目标 IP 为中国大陆 -> 直连
       dip(geoip:cn) -> direct
       # 域名包含在中国大陆列表 -> 直连
       domain(geosite:cn) -> direct
-      
-      domain(suffix:qoder.com) -> direct 
-      # 默认规则：走 my_group 代理组
-      fallback: my_group
+
+      fallback: proxy
   }
 ''
