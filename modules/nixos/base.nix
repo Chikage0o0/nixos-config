@@ -10,6 +10,26 @@
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = !varsExt.isWSL;
   boot.kernelPackages = pkgs.linuxPackages_6_18;
+  zramSwap =
+    if varsExt.isWSL then
+      {
+        enable = false;
+      }
+    else
+      {
+        enable = true;
+        memoryPercent = 50;
+      };
+  swapDevices =
+    if varsExt.isWSL then
+      [ ]
+    else
+      [
+        {
+          device = "/var/lib/swapfile";
+          size = 16 * 1024;
+        }
+      ];
 
   nix.settings = {
     experimental-features = [
