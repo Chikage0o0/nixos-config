@@ -23,11 +23,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772633327,
-        "narHash": "sha256-jl+DJB2DUx7EbWLRng+6HNWW/1/VQOnf0NsQB4PlA7I=",
+        "lastModified": 1772985285,
+        "narHash": "sha256-wEEmvfqJcl9J0wyMgMrj1TixOgInBW/6tLPhWGoZE3s=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "5a75730e6f21ee624cbf86f4915c6e7489c74acc",
+        "rev": "5be5d8245cbc7bc0c09fbb5f38f23f223c543f85",
         "type": "github"
       },
       "original": {
@@ -59,52 +59,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1772624091,
-        "narHash": "sha256-QKyJ0QGWBn6r0invrMAK8dmJoBYWoOWy7lN+UHzW1jc=",
+        "lastModified": 1772773019,
+        "narHash": "sha256-E1bxHxNKfDoQUuvriG71+f+s/NT0qWkImXsYZNFFfCs=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "80bdc1e5ce51f56b19791b52b2901187931f5353",
+        "rev": "aca4d95fce4914b3892661bcb80b8087293536c6",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1772091128,
-        "narHash": "sha256-TnrYykX8Mf/Ugtkix6V+PjW7miU2yClA6uqWl/v6KWM=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "3f0336406035444b4a24b942788334af5f906259",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "opencode": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1772906439,
-        "narHash": "sha256-XCf0ijRZZjp16YS9V65ZMoQzTWYRUrle3L4vWIxvy3M=",
-        "owner": "anomalyco",
-        "repo": "opencode",
-        "rev": "a52d640c8c56a5d9fb4623a1c601046c3d9a37b7",
-        "type": "github"
-      },
-      "original": {
-        "owner": "anomalyco",
-        "ref": "v1.2.21",
-        "repo": "opencode",
         "type": "github"
       }
     },
@@ -129,7 +94,6 @@
         "home-manager": "home-manager",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "opencode": "opencode",
         "opencode-config": "opencode-config"
       }
     }
