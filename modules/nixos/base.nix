@@ -1,17 +1,20 @@
 {
+  config,
   pkgs,
-  varsExt,
   ...
 }:
+let
+  cfg = config.myConfig;
+in
 {
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
-  boot.loader.systemd-boot.enable = !varsExt.isWSL;
-  boot.loader.systemd-boot.configurationLimit = 3;
-  boot.loader.efi.canTouchEfiVariables = !varsExt.isWSL;
+  boot.loader.systemd-boot.enable = !cfg.isWSL;
+  boot.loader.systemd-boot.configurationLimit = 6;
+  boot.loader.efi.canTouchEfiVariables = !cfg.isWSL;
   boot.kernelPackages = pkgs.linuxPackages_6_18;
   zramSwap =
-    if varsExt.isWSL then
+    if cfg.isWSL then
       {
         enable = false;
       }
@@ -21,7 +24,7 @@
         memoryPercent = 50;
       };
   swapDevices =
-    if varsExt.isWSL then
+    if cfg.isWSL then
       [ ]
     else
       [
@@ -36,7 +39,7 @@
       "nix-command"
       "flakes"
     ];
-    max-jobs = varsExt.nixMaxJobs;
+    max-jobs = cfg.nixMaxJobs;
     substituters = [
       "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://cache.nixos.org"
@@ -48,7 +51,7 @@
     ];
     trusted-users = [
       "root"
-      varsExt.username
+      cfg.username
     ];
   };
 

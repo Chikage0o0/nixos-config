@@ -1,12 +1,11 @@
 {
-  varsExt,
+  config,
   pkgs,
   ...
 }:
 let
-  configDir = varsExt.configDir;
-  sshKeysDir = varsExt.sshKeysDir;
-  hostName = varsExt.hostName;
+  cfg = config.myConfig;
+  sshKeysDir = cfg.sshKeysDir;
 in
 {
   programs.zsh = {
@@ -17,8 +16,6 @@ in
 
     shellAliases = {
       ll = "ls -l";
-      update-geoip = "bash ${configDir}/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh";
-      update = "bash ${configDir}/pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh && nix flake update opencode-config --flake ${configDir} && sudo nixos-rebuild switch --flake ${configDir}#${hostName} --impure";
       clean = "nix-collect-garbage -d";
     };
 

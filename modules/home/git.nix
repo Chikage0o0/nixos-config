@@ -1,16 +1,19 @@
 {
+  config,
   pkgs,
-  varsExt,
   ...
 }:
+let
+  cfg = config.myConfig;
+in
 {
   programs.git = {
     enable = true;
     settings = {
       user = {
-        name = varsExt.userFullName;
-        email = varsExt.userEmail;
-        signingKey = varsExt.sshPublicKey;
+        name = cfg.userFullName;
+        email = cfg.userEmail;
+        signingKey = cfg.sshPublicKey;
       };
       init.defaultBranch = "main";
       gpg.format = "ssh";

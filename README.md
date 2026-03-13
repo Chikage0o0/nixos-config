@@ -1,179 +1,218 @@
-# NixOS Config
+# NixOS Config Library
 
 [![NixOS](https://img.shields.io/badge/NixOS-unstable-blue.svg?logo=nixos&logoColor=white)](https://nixos.org)
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-green.svg?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-这是一个基于 **NixOS Flakes** 构建的高度定制化、生产力导向的开发环境配置。它专为 **AI 研发**、**CUDA 加速** 以及 **全栈开发** 场景设计，集成了透明代理、自动化 Git 工作流及现代化终端工具。
+这是一个基于 **NixOS Flakes** 构建的可复用模块库，专为 **AI 研发**、**CUDA 加速** 以及 **全栈开发** 场景设计。
+
+## 架构设计
+
+本项目采用 **双仓库分层架构**：
+
+```
+┌─────────────────────────────────────────┐
+│         本仓库 (公开模块库)              │
+│  modules/  lib/  pkgs/  dae/            │
+│  可复用的 NixOS 和 Home Manager 模块     │
+└─────────────────┬───────────────────────┘
+                  │ flake input
+┌─────────────────▼───────────────────────┐
+│         私有仓库 (主机配置)              │
+│  hosts/<hostname>/                       │
+│    ├── default.nix    # 主机特定配置     │
+│    ├── hardware-configuration.nix        │
+│    └── secrets.yaml   # sops 加密机密    │
+└─────────────────────────────────────────┘
+```
+
+**优势**：
+- 通用模块开源共享，个性化配置私有管理
+- 机密信息通过 [sops-nix](https://github.com/Mic92/sops-nix) 加密
+- 通过 hostname 自动识别主机配置
 
 ---
 
-## ✨ 核心亮点
+## 核心特性
 
-- 🚀 **AI/CUDA 赋能**: 一键开启 NVIDIA 闭源驱动与 CUDA Toolkit 环境，支持 TensorRT 开发。
-- 🛠️ **声明式变量管理**: 通过 `vars.nix` 统一管理个人配置（用户名、SSH、代理、硬件开关），实现逻辑与数据分离。
-- 🌐 **透明网络体验**: 基于 **dae (eBPF)** 的系统级透明代理，配合内核态分流，海外资源访问如丝般顺滑。
-- ⚡ **现代化 CLI**: 预装 `eza`, `zoxide`, `fzf`, `bat`, `lazygit` 等工具，配合 `zsh` + `starship` 打造极致终端体验。
-- 🔐 **安全第一**: 强制 SSH 密钥登录，集成 `nix-ld` 以兼容运行非原生二进制程序（如 VSCode Server）。
-- 🐳 **全栈就绪**: 内置 Docker 容器环境、`uv` (Python)、`bun` (JS/TS) 等现代开发工具链。
+| 特性 | 描述 |
+|------|------|
+| 🚀 **CUDA 支持** | NVIDIA 闭源驱动 + CUDA Toolkit，支持 TensorRT 开发 |
+| 🌐 **透明代理** | 基于 dae (eBPF) 的系统级透明代理，内核态智能分流 |
+| ⚡ **现代 CLI** | eza, zoxide, fzf, bat, lazygit + zsh + starship |
+| 🔐 **安全设计** | SSH 密钥登录，sops-nix 机密管理 |
+| 🐳 **开发就绪** | Docker, nix-ld, uv (Python), bun (JS/TS) |
+| 🖥️ **多环境** | 支持物理机、WSL、多主机配置 |
 
 ---
 
-## 📂 项目结构
+## 项目结构
 
-```bash
+```
 nixos-config/
-├── flake.nix             # Flakes 入口，仅负责装配
-├── vars.nix.example      # vars 模板 (可复制为本地 vars.nix)
-├── vars.nix              # 本地私有配置 (建议放入 .gitignore，不提交)
-├── hosts/
-│   └── dev-machine/
-│       └── default.nix   # 主机入口
+├── flake.nix              # Flake 入口，导出模块和 overlays
+├── lib/
+│   ├── options.nix        # NixOS myConfig options 定义
+│   └── home-options.nix   # Home Manager myConfig options 定义
 ├── modules/
 │   ├── nixos/
-│   │   ├── default.nix   # 系统模块聚合入口
-│   │   ├── base.nix
-│   │   ├── network.nix
-│   │   ├── users.nix
-│   │   ├── virtualisation.nix
-│   │   ├── packages.nix
+│   │   ├── default.nix    # 系统模块聚合
+│   │   ├── base.nix       # 基础配置 (Nix, 内核, swap)
+│   │   ├── network.nix    # 网络配置
+│   │   ├── users.nix      # 用户管理
+│   │   ├── packages.nix   # 系统包
+│   │   ├── virtualisation.nix  # Docker
 │   │   ├── hardware/
-│   │   │   └── nvidia.nix
+│   │   │   └── nvidia.nix # NVIDIA/CUDA 支持
 │   │   └── services/
-│   │       ├── dae.nix
+│   │       ├── dae.nix    # 透明代理
 │   │       └── openssh.nix
 │   └── home/
-│       ├── default.nix   # Home Manager 模块聚合入口
+│       ├── default.nix    # Home Manager 模块聚合
 │       ├── base.nix
-│       ├── git.nix
-│       ├── shell.nix
-│       ├── cli-tools.nix
-│       ├── opencode.nix
-│       └── packages.nix
+│       ├── git.nix        # Git 配置 + SSH 签名
+│       ├── shell.nix      # Zsh + Starship
+│       ├── cli-tools.nix  # 现代 CLI 工具
+│       ├── opencode.nix   # OpenCode AI 助手
+│       └── packages.nix   # 用户包
 ├── dae/
-│   └── config.nix        # dae 透明代理分流逻辑
+│   └── config.nix         # dae 透明代理配置模板
 └── pkgs/
-    └── v2ray-rules-dat/  # 自动更新的 GeoIP/GeoSite 规则
+    └── v2ray-rules-dat/   # GeoIP/GeoSite 规则包
 ```
 
 ---
 
-## 🛠️ 快速开始
+## 使用方式
 
-### 1. 首次安装：必须放置到固定路径（默认）
+### 作为 Flake Input 引入
 
-本配置默认会从真实文件系统读取 `vars.nix`，并自动推导路径为：
-
-- `/home/<真实用户>/nixos-config/vars.nix`
-
-因此首次安装请把仓库克隆到 `~/nixos-config`：
-
-```bash
-git clone https://github.com/your-username/nixos-config.git ~/nixos-config
-cd ~/nixos-config
-```
-
-如果你不想放在 `~/nixos-config`，也可以用环境变量覆盖（见第 3 步）。
-
-### 2. 自定义 `vars.nix`
-
-`vars.nix` 建议保持为本地私有文件（可被 `.gitignore` 忽略）。请从模板创建并填写你的个人信息：
-
-```bash
-cp vars.nix.example vars.nix
-```
+在你的私有配置仓库的 `flake.nix` 中：
 
 ```nix
 {
-  username = "your_name";         # 登录用户名
-  sshPublicKey = "ssh-ed25519..."; # SSH 公钥 (用于登录与 Git 签名)
-  isNvidia = true;                # 是否启用 NVIDIA/CUDA 环境
-  daeNodes = {
-    my_node = "vless://...";      # 你的代理节点
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    nixos-config-public = {
+      url = "github:Chikage0o0/nixos-config";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager.url = "github:nix-community/home-manager";
+    sops-nix.url = "github:Mic92/sops-nix";
+  };
+
+  outputs = { nixpkgs, nixos-config-public, ... }@inputs: {
+    nixosConfigurations.my-host = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        # 导入公共模块
+        nixos-config-public.nixosModules.default
+
+        # 你的主机配置
+        ./hosts/my-host
+      ];
+    };
   };
 }
 ```
 
-> 说明：本项目的 `flake.nix` 会直接从文件系统读取 `vars.nix`，因此即使 `vars.nix` 被 `.gitignore` 忽略也不会影响使用。
+### 配置 myConfig
 
-### 2.1 配置并自动加载 `ssh-keys`
-
-系统会在 zsh 启动时自动确保 `ssh-agent` 可用，并尝试加载 `sshKeysDir` 目录中的私钥文件（会跳过 `*.pub`、`*.txt`、`*.md`）。
-
-1. 在 `vars.nix` 中设置密钥目录（可选，不填时默认 `~/nixos-config/ssh-keys`）：
+模块通过 `config.myConfig` 接收配置：
 
 ```nix
+# hosts/my-host/default.nix
+{ config, ... }:
 {
-  sshKeysDir = "~/nixos-config/ssh-keys";
+  myConfig = {
+    # 用户信息
+    username = "your_username";
+    userFullName = "Your Name";
+    userEmail = "your@email.com";
+    sshPublicKey = "ssh-ed25519 AAAA...";
+
+    # 功能开关
+    isWSL = false;
+    isNvidia = true;
+    enableDae = true;
+    enableNetbird = false;
+
+    # 路径配置
+    configDir = "~/nixos-config-private";
+    sshKeysDir = "~/nixos-config-private/ssh-keys";
+
+    # Nix 构建
+    nixMaxJobs = 8;
+
+    # 网络
+    extraHosts = { };
+
+    # dae 代理 (建议通过 sops 管理)
+    daeNodes = { };
+    daeSubscriptions = [ ];
+
+    # OpenCode
+    opencodeSettings = { };
+  };
 }
 ```
 
-2. 创建目录并放入私钥（不要提交到 Git）：
+---
 
-```bash
-mkdir -p ~/nixos-config/ssh-keys
-cp ~/.ssh/your_signing_key ~/nixos-config/ssh-keys/private.key
-```
+## 导出内容
 
-3. 修正权限（否则 OpenSSH 会拒绝加载）：
+### nixosModules
 
-```bash
-chmod 700 ~/nixos-config/ssh-keys
-chmod 600 ~/nixos-config/ssh-keys/private.key
-```
+| 模块 | 描述 |
+|------|------|
+| `default` | 完整 NixOS 模块聚合 |
+| `base` | 基础系统配置 |
+| `network` | 网络配置 |
+| `users` | 用户管理 |
+| `nvidia` | NVIDIA/CUDA 支持 |
+| `dae` | dae 透明代理 |
+| `openssh` | SSH 服务 |
 
-4. 重新打开终端后可验证：
+### homeModules
 
-```bash
-ssh-add -l
-```
+| 模块 | 描述 |
+|------|------|
+| `default` | 完整 Home Manager 模块聚合 |
 
-### 3. 应用并部署
+### overlays
 
-执行以下命令应用配置（首次执行需 `sudo`）：
-
-```bash
-# 部署系统 (节点名为 dev-machine)
-sudo nixos-rebuild switch --flake .#dev-machine --impure
-```
-
-如果你的仓库不在 `~/nixos-config`，请用 `NIXOS_CONFIG_DIR` 覆盖 `vars.nix` 所在目录（并保留环境变量给 sudo）：
-
-```bash
-NIXOS_CONFIG_DIR="/path/to/nixos-config" \
-  sudo --preserve-env=NIXOS_CONFIG_DIR \
-  nixos-rebuild switch --flake /path/to/nixos-config#dev-machine --impure
-```
+| Overlay | 描述 |
+|---------|------|
+| `default` | v2ray-rules-dat 等自定义包 |
 
 ---
 
-## ⌨️ 常用快捷指令
+## 私有仓库示例
 
-系统内置了多个简化日常维护的别名：
+推荐的私有仓库结构：
 
-| 指令           | 作用                                    |
-| :------------- | :-------------------------------------- |
-| `update`       | 更新系统配置并同步最新的 GeoIP 代理规则 |
-| `update-geoip` | 仅更新 dae 的分流规则数据               |
-| `clean`        | 清理旧版本的 Nix 生成产物，释放磁盘空间 |
-| `ll` / `la`    | 使用 `eza` 展示增强型文件列表           |
-| `lg`           | 打开 `lazygit` 终端界面                 |
+```
+nixos-config-private/
+├── flake.nix
+├── .sops.yaml
+├── deploy.sh
+└── hosts/
+    ├── workstation/
+    │   ├── default.nix
+    │   ├── hardware-configuration.nix
+    │   └── secrets.yaml
+    └── laptop/
+        ├── default.nix
+        ├── hardware-configuration.nix
+        └── secrets.yaml
+```
 
----
-
-## 🔧 常见问题排查 (FAQ)
-
-**Q: 如何在 NixOS 上运行下载的二进制文件？**
-A: 本配置已启用 `nix-ld`。大部分预编译程序（如 VSCode Server, Github Copilot）可直接运行。
-
-**Q: NVIDIA 显卡没有生效？**
-A: 请确保 `vars.nix` 中 `isNvidia = true;`，并重启系统以加载内核模块。使用 `nvidia-smi` 验证。
-
-**Q: 代理无法连接？**
-A: 检查 `dae` 服务状态：`systemctl status dae`。确保 `vars.nix` 中的节点链接格式正确。
+详细的私有仓库配置指南请参考 [私有仓库 README](https://github.com/Chikage0o0/nixos-config-private)（需单独创建）。
 
 ---
 
-## 📜 许可证
+## 许可证
 
-基于 [MIT License](LICENSE) 开源。欢迎 Fork 并定制属于你的 NixOS 环境！
+MIT License

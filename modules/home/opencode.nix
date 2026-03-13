@@ -1,10 +1,12 @@
 {
   config,
   pkgs,
-  varsExt,
   inputs,
   ...
 }:
+let
+  cfg = config.myConfig;
+in
 {
   home.file = {
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
@@ -15,24 +17,6 @@
   programs.opencode = {
     enable = true;
     package = pkgs.opencode;
-    settings = pkgs.lib.recursiveUpdate (builtins.fromJSON (builtins.readFile "${inputs.opencode-config}/opencode.json")) varsExt.opencodeSettings;
-  };
-
-  systemd.user.services.opencode-serve = {
-    Unit = {
-      Description = "OpenCode Serve";
-      After = [ "network.target" ];
-    };
-    Service = {
-      Environment = [
-        "PATH=${config.home.profileDirectory}/bin:/etc/profiles/per-user/${varsExt.username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin"
-      ];
-      ExecStart = "${config.programs.opencode.package}/bin/opencode serve --port 14096 --hostname 0.0.0.0";
-      Restart = "on-failure";
-      RestartSec = 5;
-    };
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
+    settings = pkgs.lib.recursiveUpdate (builtins.fromJSON (builtins.readFile "${inputs.opencode-config}/opencode.json")) cfg.opencodeSettings;
   };
 }

@@ -1,27 +1,32 @@
 {
+  config,
   pkgs,
-  varsExt,
   ...
 }:
+let
+  cfg = config.myConfig;
+in
 {
-  users.users.${varsExt.username} = {
+  users.users.${cfg.username} = {
     isNormalUser = true;
-    description = varsExt.userFullName;
+    description = cfg.userFullName;
     extraGroups = [
       "networkmanager"
       "wheel"
       "docker"
+      "dialout"
     ];
     shell = pkgs.zsh;
-    initialPassword = varsExt.initialPassword;
+    # 密码由 sops-nix 管理，此处仅作为备用
+    # initialPassword = "changeme";
     openssh.authorizedKeys.keys = [
-      varsExt.sshPublicKey
+      cfg.sshPublicKey
     ];
   };
 
   security.sudo.extraRules = [
     {
-      users = [ varsExt.username ];
+      users = [ cfg.username ];
       commands = [
         {
           command = "ALL";

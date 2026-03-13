@@ -1,20 +1,21 @@
 {
+  config,
   lib,
-  varsExt,
   ...
 }:
 let
-  netbirdActive = (!varsExt.isWSL) && varsExt.enableNetbird;
+  cfg = config.myConfig;
+  netbirdActive = (!cfg.isWSL) && cfg.enableNetbird;
 in
 {
-  networking.networkmanager.enable = !varsExt.isWSL;
-  networking.hosts = varsExt.extraHosts;
+  networking.networkmanager.enable = !cfg.isWSL;
+  networking.hosts = cfg.extraHosts;
   time.timeZone = "Asia/Shanghai";
 
   services.netbird.enable = netbirdActive;
 
   networking.firewall = {
-    enable = !varsExt.isWSL;
+    enable = !cfg.isWSL;
     allowedUDPPorts =
       if netbirdActive then
         [

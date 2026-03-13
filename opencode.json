@@ -3,7 +3,10 @@
   "mcp": {
     "nixos": {
       "type": "local",
-      "command": ["uvx", "mcp-nixos"]
+      "command": [
+        "uvx",
+        "mcp-nixos"
+      ]
     }
   },
   "tools": {
@@ -12,10 +15,10 @@
   "permission": {
     "read": {
       "*": "allow",
-      "vars.nix": "deny",
-      "*/vars.nix": "deny",
       "ssh-keys/*": "deny",
-      "*/ssh-keys/*": "deny"
+      "*/ssh-keys/*": "deny",
+      "secrets.yaml": "deny",
+      "*/secrets.yaml": "deny"
     }
   }
 }

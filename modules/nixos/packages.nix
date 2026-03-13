@@ -9,5 +9,7 @@
     nixd
     cachix
     devenv
+    kmod
+    usbutils
   ];
 }

@@ -1,15 +1,18 @@
 {
+  config,
   pkgs,
-  varsExt,
   ...
 }:
+let
+  cfg = config.myConfig;
+in
 {
   services.dae = {
-    enable = (!varsExt.isWSL) && varsExt.enableDae;
+    enable = (!cfg.isWSL) && cfg.enableDae;
     configFile = pkgs.writeText "config.dae" (
       import ../../../dae/config.nix {
-        nodes = varsExt.daeNodes;
-        subscriptions = varsExt.daeSubscriptions;
+        nodes = cfg.daeNodes;
+        subscriptions = cfg.daeSubscriptions;
       }
     );
     assets = [

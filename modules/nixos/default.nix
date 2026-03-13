@@ -1,6 +1,9 @@
 { ... }:
 {
   imports = [
+    # 导入 options 定义
+    ../../lib/options.nix
+    # 功能模块
     ./base.nix
     ./network.nix
     ./users.nix

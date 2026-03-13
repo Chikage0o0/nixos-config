@@ -1,6 +1,9 @@
-{ varsExt, ... }:
+{ config, ... }:
+let
+  cfg = config.myConfig;
+in
 {
-  home.username = varsExt.username;
-  home.homeDirectory = "/home/${varsExt.username}";
+  home.username = cfg.username;
+  home.homeDirectory = "/home/${cfg.username}";
   home.stateVersion = "25.11";
 }

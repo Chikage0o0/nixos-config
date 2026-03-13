@@ -1,12 +1,15 @@
-# NixOS Hardware Configuration
-hardware-configuration.nix
-
-# Local configuration variables
-vars.nix
-
-# SSH keys
-ssh-keys
-
 # Nix build results
 result
 result-*
+
+# 编辑器临时文件
+*~
+*.swp
+*.swo
+.*.swp
+
+# macOS
+.DS_Store
+
+# 其他
+.direnv/
