@@ -10,7 +10,7 @@
       },
       "options": {
         "nixos": {
-          "expr": "(builtins.getFlake \"/home/chikage/nixos-config\").nixosConfigurations.dev-machine.options"
+          "expr": "(builtins.getFlake \"/home/chikage/nixos-config\").nixosConfigurations.default.options"
         }
       }
     }

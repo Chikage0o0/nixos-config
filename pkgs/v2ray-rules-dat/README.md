@@ -60,7 +60,7 @@ bash pkgs/v2ray-rules-dat/update-v2ray-rules-dat.sh
 更新脚本运行后,执行系统重建:
 
 ```bash
-sudo nixos-rebuild switch --flake ~/nixos-config#dev-machine
+sudo nixos-rebuild switch --flake ~/nixos-config#default
 ```
 
 或者直接使用 `update` alias,它会自动执行上述步骤。

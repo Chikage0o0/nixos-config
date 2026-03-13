@@ -17,5 +17,8 @@
     python3Packages.pip
     uv
     docker-compose
+    age
+    sops
+    ssh-to-age
   ];
 }

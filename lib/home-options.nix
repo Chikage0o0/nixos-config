@@ -51,10 +51,16 @@ in
       description = "Opencode 自定义配置";
     };
 
+    opencodeConfigFile = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "运行时生成的 Opencode 配置文件路径；设置后优先使用该文件，避免将机密写入 Nix store";
+    };
+
     # 主机名 (用于 shell alias)
     hostName = mkOption {
       type = types.str;
-      default = "dev-machine";
+      default = "default";
       description = "主机名";
     };
   };
