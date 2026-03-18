@@ -7,7 +7,7 @@
 }:
 let
   cfg = config.myConfig;
-  opencodeConfigPath = ".config/opencode/config.json";
+  opencodeConfigPath = ".config/opencode/opencode.json";
 in
 {
   home.file = {
