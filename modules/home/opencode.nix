@@ -14,6 +14,7 @@ in
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
     ".config/opencode/plugins/".source = "${inputs.opencode-config}/plugins";
+    ".config/opencode/tui.json".source = "${inputs.opencode-config}/tui.json";
   }
   // lib.optionalAttrs (cfg.opencodeConfigFile != null) {
     "${opencodeConfigPath}" = {
