@@ -1,11 +1,20 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 let
   cfg = config.myConfig;
-  sshKeysDir = cfg.sshKeysDir;
+  sshSopsSecrets = cfg.sshSopsSecrets;
+  enableSshAgent = cfg.enableSshAgent;
+
+  # 生成加载 sops secret 的脚本
+  loadSopsSecrets = lib.concatMapStringsSep "\n" (name: ''
+    if [ -f "/run/secrets/${name}" ]; then
+      ${pkgs.openssh}/bin/ssh-add "/run/secrets/${name}" >/dev/null 2>&1
+    fi
+  '') sshSopsSecrets;
 in
 {
   programs.zsh = {
@@ -19,7 +28,7 @@ in
       clean = "nix-collect-garbage -d";
     };
 
-    initContent = ''
+    initContent = lib.mkIf enableSshAgent ''
       ssh-add -l >/dev/null 2>&1
       ssh_agent_state=$?
 
@@ -29,20 +38,8 @@ in
       fi
 
       if [ "$ssh_agent_state" -eq 1 ]; then
-        ssh_keys_dir="${sshKeysDir}"
-        ssh_keys_dir="''${ssh_keys_dir/#\~/$HOME}"
-
-        if [ -d "$ssh_keys_dir" ]; then
-          for key_file in "$ssh_keys_dir"/*; do
-            [ -f "$key_file" ] || continue
-
-            case "$key_file" in
-              *.pub|*.txt|*.md) continue ;;
-            esac
-
-            ${pkgs.openssh}/bin/ssh-add "$key_file" >/dev/null 2>&1
-          done
-        fi
+        # 加载 sops 解密的私钥
+        ${loadSopsSecrets}
       fi
     '';
   };

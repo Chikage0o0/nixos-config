@@ -5,6 +5,7 @@
     wget
     curl
     git
+    tree
     nixfmt
     nixd
     cachix

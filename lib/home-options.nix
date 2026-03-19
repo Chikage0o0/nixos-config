@@ -38,10 +38,11 @@ in
       description = "NixOS 配置目录路径";
     };
 
-    sshKeysDir = mkOption {
-      type = types.str;
-      default = "~/nixos-config/ssh-keys";
-      description = "SSH 私钥目录路径";
+    sshSopsSecrets = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "要加载的 sops secret 名称列表，会自动从 /run/secrets/<name> 加载";
+      example = [ "ssh_private_key" "github_deploy_key" ];
     };
 
     # Opencode 配置
@@ -62,6 +63,13 @@ in
       type = types.str;
       default = "default";
       description = "主机名";
+    };
+
+    # SSH Agent 配置
+    enableSshAgent = mkOption {
+      type = types.bool;
+      default = true;
+      description = "是否自动启动 ssh-agent 并加载私钥";
     };
   };
 }
