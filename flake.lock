@@ -76,11 +76,11 @@
     "opencode-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1774226094,
-        "narHash": "sha256-oKvayLA1gY8YO8dvqlaVZSG2XAvoY5TafQs3Pi3nDBU=",
+        "lastModified": 1774233762,
+        "narHash": "sha256-iL/pO6h8Blpiht/w5UnKne+d7ghEdPV+0zkb1oqTVzI=",
         "owner": "Chikage0o0",
         "repo": "opencode",
-        "rev": "39a727cfddca1b0f6738a7ffa24422e1fa5aa2fc",
+        "rev": "bcd57bc05d26e1a6a427f421f0fefd5e747869d9",
         "type": "github"
       },
       "original": {

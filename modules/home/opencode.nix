@@ -39,10 +39,6 @@ in
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
     ".config/opencode/plugins/".source = "${inputs.opencode-config}/plugins";
     ".config/opencode/tui.json".source = "${inputs.opencode-config}/tui.json";
-    ".config/rtk/config.toml".text = ''
-      [hooks]
-      exclude_commands = ["rg"]
-    '';
   }
   // lib.optionalAttrs (cfg.opencodeConfigFile != null) {
     "${opencodeConfigPath}" = {
