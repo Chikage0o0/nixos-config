@@ -12,5 +12,6 @@
     devenv
     kmod
     usbutils
+    openssl
   ];
 }
