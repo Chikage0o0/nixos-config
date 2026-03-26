@@ -14,11 +14,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    opencode = {
-      url = "git+https://github.com/anomalyco/opencode?ref=refs/tags/v1.3.2";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     opencode-config = {
       url = "github:Chikage0o0/opencode";
       flake = false;

@@ -23,11 +23,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774379316,
-        "narHash": "sha256-0nGNxWDUH2Hzlj/R3Zf4FEK6fsFNB/dvewuboSRZqiI=",
+        "lastModified": 1774534244,
+        "narHash": "sha256-WnmXKsbkwokDdrdI1XwRWH4RYYalOVKgV/hYQmL3/TE=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "1eb0549a1ab3fe3f5acf86668249be15fa0e64f7",
+        "rev": "86014e836ca6f4a04d59b85111d39660bdda01cd",
         "type": "github"
       },
       "original": {
@@ -73,35 +73,14 @@
         "type": "github"
       }
     },
-    "opencode": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1774392635,
-        "narHash": "sha256-04eOIBHX9e8Brwn+uL/7q8szvRUilr4G0B8eB76dhKU=",
-        "ref": "refs/tags/v1.3.2",
-        "rev": "0dcdf5f529dced23d8452c9aa5f166abb24d8f7c",
-        "revCount": 10526,
-        "type": "git",
-        "url": "https://github.com/anomalyco/opencode"
-      },
-      "original": {
-        "ref": "refs/tags/v1.3.2",
-        "type": "git",
-        "url": "https://github.com/anomalyco/opencode"
-      }
-    },
     "opencode-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1774315068,
-        "narHash": "sha256-mDstv1cInAp4obPRmsfwqSS+ko1CTrVObOXfjQTDA5M=",
+        "lastModified": 1774535192,
+        "narHash": "sha256-/ZRsPRb2oMO+kswMI720roUeHxGAtLLwjgszkmri42w=",
         "owner": "Chikage0o0",
         "repo": "opencode",
-        "rev": "2451ee939c5e098088f534bd0e2e91de891077c1",
+        "rev": "d41478b466a6d0f770c8b23a2e128c0d35ec18d8",
         "type": "github"
       },
       "original": {
@@ -115,7 +94,6 @@
         "home-manager": "home-manager",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "opencode": "opencode",
         "opencode-config": "opencode-config"
       }
     }
