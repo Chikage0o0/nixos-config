@@ -8,15 +8,17 @@
 let
   cfg = config.myConfig;
   opencodeConfigPath = ".config/opencode/opencode.json";
+  opencode = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+
   rtk = pkgs.rustPlatform.buildRustPackage rec {
     pname = "rtk";
-    version = "0.31.0";
+    version = "0.33.1";
 
     src = pkgs.fetchFromGitHub {
       owner = "rtk-ai";
       repo = "rtk";
       rev = "v${version}";
-      hash = "sha256-p4OX3SSDGKlHVLIWhgKpcme449wOHbfWbc3mxlCkaMI=";
+      hash = "sha256-QkAtxSpMyjbscQgSUWks0aIkWaAYXgY6c9qM3sdPN+0=";
     };
 
     cargoLock.lockFile = "${src}/Cargo.lock";
@@ -49,7 +51,7 @@ in
 
   programs.opencode = {
     enable = true;
-    package = pkgs.opencode;
+    package = opencode;
   }
   // lib.optionalAttrs (cfg.opencodeConfigFile == null) {
     settings = pkgs.lib.recursiveUpdate (builtins.fromJSON (builtins.readFile "${inputs.opencode-config}/opencode.json")) cfg.opencodeSettings;
