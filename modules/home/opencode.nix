@@ -43,7 +43,10 @@ let
     dontConfigure = true;
     dontBuild = true;
 
-    nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.unzip ];
+    nativeBuildInputs = [
+      pkgs.makeWrapper
+    ]
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.unzip ];
 
     unpackPhase =
       if pkgs.stdenv.hostPlatform.isLinux then
@@ -59,18 +62,13 @@ let
       runHook preInstall
 
       install -Dm755 opencode $out/libexec/opencode
-      mkdir -p $out/bin
 
-      cat > $out/bin/opencode <<'EOF'
-      #!${pkgs.runtimeShell}
-      export PATH="${
-        lib.makeBinPath (
-          [ pkgs.ripgrep ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.sysctl ]
-        )
-      }:$PATH"
-      exec "$(dirname "$0")/../libexec/opencode" "$@"
-      EOF
-      chmod +x $out/bin/opencode
+      makeWrapper $out/libexec/opencode $out/bin/opencode \
+        --prefix PATH : "${
+          lib.makeBinPath (
+            [ pkgs.ripgrep ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.sysctl ]
+          )
+        }"
 
       runHook postInstall
     '';
