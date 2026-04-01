@@ -21,5 +21,6 @@
     sops
     ssh-to-age
     gh
+    zellij
   ];
 }
