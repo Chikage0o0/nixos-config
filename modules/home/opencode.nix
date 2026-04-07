@@ -8,24 +8,24 @@
 let
   cfg = config.myConfig;
   opencodeConfigPath = ".config/opencode/opencode.json";
-  opencodeVersion = "1.3.13";
+  opencodeVersion = "1.3.17";
   opencodeRelease =
     {
       x86_64-linux = {
         asset = "opencode-linux-x64.tar.gz";
-        hash = "sha256-CKwqkdjwcbDlu37AhmXH+US8ugCm/gK7ZjONdK0GesU=";
+        hash = "sha256-GeVAhAz9BK/r7ZLP5n3ODNbEJe1fcp75RugHH3diBak=";
       };
       aarch64-linux = {
         asset = "opencode-linux-arm64.tar.gz";
-        hash = "sha256-r5EzzrXZlXJl1zBFZVSqfDiqvI/zgnOUoj0/6sj+fvI=";
+        hash = "sha256-NFKT7SnHA888Sw5pbbUMNYbJc6TU/5Dx21tsu7ss7ks=";
       };
       x86_64-darwin = {
         asset = "opencode-darwin-x64.zip";
-        hash = "sha256-j9hKu2gqwOznJuZaPba917qgFDyWhCUpQoO+4fBYuzc=";
+        hash = "sha256-VUthAQJsZAxOX21PT3c42LKEAVXsp1uTrAutnVx1bA8=";
       };
       aarch64-darwin = {
         asset = "opencode-darwin-arm64.zip";
-        hash = "sha256-y72/oZ0Z+VU4kJsK8qSfi65wuk9bb0DRfG67nRnyPzM=";
+        hash = "sha256-FEvtkU6MwAS6T3n9AdYfGtEhpkF+E++X3G/oZlyJA7s=";
       };
     }
     .${pkgs.stdenv.hostPlatform.system}
@@ -90,13 +90,13 @@ let
 
   rtk = pkgs.rustPlatform.buildRustPackage rec {
     pname = "rtk";
-    version = "0.34.2";
+    version = "0.35.0";
 
     src = pkgs.fetchFromGitHub {
       owner = "rtk-ai";
       repo = "rtk";
       rev = "v${version}";
-      hash = "sha256-oBaF3BdF4h7meP7+8gtqBSgOFn0wQq08bOkygpn/ukg=";
+      hash = "sha256-7DAL4dsnq2ZWmkyoI+BeN21ouK0VyLvSxOCt5hPWCl4=";
     };
 
     cargoLock.lockFile = "${src}/Cargo.lock";
