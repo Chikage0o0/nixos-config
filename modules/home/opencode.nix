@@ -8,24 +8,24 @@
 let
   cfg = config.myConfig;
   opencodeConfigPath = ".config/opencode/opencode.json";
-  opencodeVersion = "1.3.17";
+  opencodeVersion = "1.4.0";
   opencodeRelease =
     {
       x86_64-linux = {
         asset = "opencode-linux-x64.tar.gz";
-        hash = "sha256-GeVAhAz9BK/r7ZLP5n3ODNbEJe1fcp75RugHH3diBak=";
+        hash = "sha256-URfrCKpULUmwFJuoN9AcfrwdebozLoUYhZ7cM8Tv8s8=";
       };
       aarch64-linux = {
         asset = "opencode-linux-arm64.tar.gz";
-        hash = "sha256-NFKT7SnHA888Sw5pbbUMNYbJc6TU/5Dx21tsu7ss7ks=";
+        hash = "sha256-L1co7UfYFH2pFj5MEKg5FBMb+Em/wPF1kKttWLfQO6M=";
       };
       x86_64-darwin = {
         asset = "opencode-darwin-x64.zip";
-        hash = "sha256-VUthAQJsZAxOX21PT3c42LKEAVXsp1uTrAutnVx1bA8=";
+        hash = "sha256-+yq0tJlbzO1XXxn5C7CMtleszbkOvuyfDNGC8C4engw=";
       };
       aarch64-darwin = {
         asset = "opencode-darwin-arm64.zip";
-        hash = "sha256-FEvtkU6MwAS6T3n9AdYfGtEhpkF+E++X3G/oZlyJA7s=";
+        hash = "sha256-vpaOVZBRu2IvC5/GKCFmcCQLfnRBoRsOsR95pvAyOaU=";
       };
     }
     .${pkgs.stdenv.hostPlatform.system}
