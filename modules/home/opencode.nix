@@ -115,6 +115,7 @@ in
   home.packages = [ rtk ];
 
   home.file = {
+    ".config/opencode/agents/".source = "${inputs.opencode-config}/agents";
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
     ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
     ".config/opencode/plugins/".source = "${inputs.opencode-config}/plugins";
