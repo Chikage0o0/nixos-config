@@ -86,10 +86,16 @@ myConfig = {
   userEmail = "your@email.com";     # 邮箱
   sshPublicKey = "ssh-ed25519 ..."; # SSH 公钥
   isWSL = false;                    # 是否为 WSL 环境
+  bootMode = "uefi";                # 物理机默认 UEFI；传统 BIOS 改成 "bios"
+  grubDevice = null;                # 仅 BIOS 需要，填 /dev/disk/by-id/...
   isNvidia = false;                 # 是否启用 NVIDIA
   enableDae = false;                # 是否启用透明代理
 };
 ```
+
+仓库现在默认使用 `grub`。UEFI 主机通常不需要额外的引导配置；传统 BIOS 主机需要同时设置 `bootMode = "bios"` 和 `grubDevice = "/dev/disk/by-id/..."`。
+
+如果 `/boot` 是独立文件系统，NixOS 的 `grub` 仍可能把内核复制到 `/boot`，最终能缓解多少容量压力取决于实际分区布局。
 
 编辑 `hosts/my-host/secrets.yaml` 填入真实密码和密钥，然后用 sops 加密：
 
@@ -130,6 +136,8 @@ chmod +x deploy.sh
 | `sshPublicKey`     | string               | **必填** | SSH 公钥                                   |
 | `nixMaxJobs`       | int \| "auto"        | `"auto"` | Nix 最大并行构建数                         |
 | `isWSL`            | bool                 | `false`  | 是否为 WSL 环境                            |
+| `bootMode`         | "uefi" \\| "bios" | `"uefi"` | 非 WSL 主机的 GRUB 启动模式               |
+| `grubDevice`       | nullOr string        | `null`   | 传统 BIOS 模式下 GRUB 安装目标磁盘        |
 | `isNvidia`         | bool                 | `false`  | 启用 NVIDIA 闭源驱动 + CUDA                |
 | `enableDae`        | bool                 | `false`  | 启用 dae (eBPF) 透明代理                   |
 | `extraHosts`       | attrsOf (listOf str) | `{ }`    | 额外的 `/etc/hosts` 映射                   |
@@ -168,6 +176,7 @@ in
   myConfig = lib.mkMerge [
     {
       isWSL = isWSL;
+      bootMode = "uefi";
       isNvidia = isNvidia;
       enableDae = true;
       # ...其他必填字段
@@ -187,6 +196,8 @@ in
 ```
 
 > **注意：** `daeConfigFile` 包含节点和订阅信息，务必通过 sops 管理，不要将明文写入 nix 文件。
+
+如果机器是传统 BIOS，再额外设置 `bootMode = "bios";` 和 `grubDevice = "/dev/disk/by-id/...";`。
 
 ### 多主机管理
 

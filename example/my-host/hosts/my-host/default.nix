@@ -38,6 +38,10 @@ in
 
     # 功能开关（需与上方 let 变量保持一致）
     isWSL = isWSL;
+    # WSL 会忽略启动器设置；物理机默认按 UEFI + GRUB 处理
+    bootMode = "uefi";
+    # 仅传统 BIOS 主机需要填写，建议使用 /dev/disk/by-id/... 这类稳定路径
+    grubDevice = null;
     isNvidia = isNvidia;
     enableDae = false;
 

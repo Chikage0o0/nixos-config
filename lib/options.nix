@@ -45,6 +45,23 @@ in
       description = "是否为 WSL 环境";
     };
 
+    bootMode = mkOption {
+      type = types.enum [
+        "uefi"
+        "bios"
+      ];
+      default = "uefi";
+      description = "非 WSL 主机的 GRUB 启动模式";
+      example = "bios";
+    };
+
+    grubDevice = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "传统 BIOS 模式下 GRUB 的安装目标磁盘路径";
+      example = "/dev/disk/by-id/wwn-0x500001234567890a";
+    };
+
     isNvidia = mkOption {
       type = types.bool;
       default = false;

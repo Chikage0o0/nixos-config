@@ -108,9 +108,11 @@ cp /etc/nixos/hardware-configuration.nix "hosts/$HOSTNAME_FINAL/"
 编辑 `hosts/$HOSTNAME_FINAL/default.nix`：
 
 1. 把 `isWSL = true;` 改成 `isWSL = false;`
-2. 按机器实际情况设置 `isNvidia = true;` 或 `false;`
-3. 把 `username`、`userFullName`、`userEmail`、`sshPublicKey` 改成你的真实值
-4. 如果你是从“只有 root”的路径进入，这里的 `username` 应该和刚才手动创建的普通用户保持一致
+2. 物理机默认走 `grub + UEFI`，一般不需要额外改启动器设置
+3. 如果机器是传统 BIOS，再额外设置 `bootMode = "bios";` 和 `grubDevice = "/dev/disk/by-id/...";`
+4. 按机器实际情况设置 `isNvidia = true;` 或 `false;`
+5. 把 `username`、`userFullName`、`userEmail`、`sshPublicKey` 改成你的真实值
+6. 如果你是从“只有 root”的路径进入，这里的 `username` 应该和刚才手动创建的普通用户保持一致
 
 这里不要删除这段导入逻辑：
 
@@ -122,6 +124,8 @@ imports =
 ```
 
 因为物理机正是靠 `isWSL = false` 时自动导入 `./hardware-configuration.nix`。
+
+如果 `/boot` 是独立文件系统，NixOS 的 `grub` 仍可能把内核复制到 `/boot`；切到 `grub` 可以减少 `systemd-boot` 对 EFI 分区的压力，但最终效果仍取决于你的分区布局。
 
 ## 5. 准备 SSH 密钥
 

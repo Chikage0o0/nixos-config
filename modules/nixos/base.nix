@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -9,13 +10,42 @@ let
     "aarch64-linux"
     "x86_64-linux"
   ];
+  isUEFI = cfg.bootMode == "uefi";
+  isBIOS = cfg.bootMode == "bios";
 in
 {
   boot.binfmt.emulatedSystems = emulateArchs;
 
-  boot.loader.systemd-boot.enable = !cfg.isWSL;
-  boot.loader.systemd-boot.configurationLimit = 6;
-  boot.loader.efi.canTouchEfiVariables = !cfg.isWSL;
+  # 默认改用 GRUB，避免 systemd-boot 将多代内核直接写进 EFI 分区。
+  # 传统 BIOS 的安装目标必须由主机显式声明，公共模块不猜测磁盘路径。
+  boot.loader.grub = lib.mkMerge [
+    {
+      enable = !cfg.isWSL;
+    }
+    (lib.mkIf (!cfg.isWSL) {
+      configurationLimit = 6;
+    })
+    (lib.mkIf (!cfg.isWSL && isUEFI) {
+      efiSupport = true;
+      device = "nodev";
+    })
+    (lib.mkIf (!cfg.isWSL && isBIOS && cfg.grubDevice != null) {
+      device = cfg.grubDevice;
+    })
+  ];
+  boot.loader.efi.canTouchEfiVariables = !cfg.isWSL && isUEFI;
+
+  assertions = lib.optionals (!cfg.isWSL) [
+    {
+      assertion = cfg.bootMode != "uefi" || cfg.grubDevice == null;
+      message = "使用 UEFI 启动时不要设置 myConfig.grubDevice；GRUB 会以 EFI 方式安装并使用 device = \"nodev\"。";
+    }
+    {
+      assertion = cfg.bootMode != "bios" || cfg.grubDevice != null;
+      message = "使用传统 BIOS 启动时必须设置 myConfig.grubDevice，例如 /dev/disk/by-id/...。";
+    }
+  ];
+
   boot.kernelPackages = pkgs.linuxPackages_latest;
   zramSwap =
     if cfg.isWSL then

@@ -50,6 +50,8 @@ cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
 3. 编辑 `hosts/my-host/secrets.yaml` - 填写真实密码和密钥
 4. 编辑 `hosts/opencode-config.template.json` - 自定义 AI 模型配置
 
+公共模块对非 WSL 物理机默认采用 `grub + UEFI`；当前示例模板本身仍是 WSL 起点。如果目标机器是传统 BIOS，还要把 `myConfig.bootMode` 改成 `"bios"`，并填写 `myConfig.grubDevice = "/dev/disk/by-id/..."`。
+
 ### 5. 加密机密文件
 
 ```bash
@@ -81,6 +83,8 @@ hostname
 4. 在 `.sops.yaml` 中添加新主机密钥和加密规则
 5. 在 `flake.nix` 的 `hostConfigs` 中添加新条目
 6. 为新主机创建并加密 `secrets.yaml`
+
+如果新主机使用传统 BIOS，再额外设置 `myConfig.bootMode = "bios"` 和 `myConfig.grubDevice = "/dev/disk/by-id/..."`。
 
 ## 目录结构
 
