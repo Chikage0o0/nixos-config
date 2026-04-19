@@ -137,10 +137,6 @@ nixos-config/
     isWSL = false;
     isNvidia = true;
     enableDae = true;
-    # 路径配置
-    configDir = "~/nixos-config-private";
-    sshKeysDir = "~/nixos-config-private/ssh-keys";
-
     # Nix 构建
     nixMaxJobs = 8;
 

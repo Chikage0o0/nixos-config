@@ -31,18 +31,14 @@ in
       example = "ssh-ed25519 AAAA...";
     };
 
-    # 路径配置
-    configDir = mkOption {
-      type = types.str;
-      default = "~/nixos-config";
-      description = "NixOS 配置目录路径";
-    };
-
     sshSopsSecrets = mkOption {
       type = types.listOf types.str;
       default = [ ];
       description = "要加载的 sops secret 名称列表，会自动从 /run/secrets/<name> 加载";
-      example = [ "ssh_private_key" "github_deploy_key" ];
+      example = [
+        "ssh_private_key"
+        "github_deploy_key"
+      ];
     };
 
     # Opencode 配置
@@ -56,13 +52,6 @@ in
       type = types.nullOr types.str;
       default = null;
       description = "运行时生成的 Opencode 配置文件路径；设置后优先使用该文件，避免将机密写入 Nix store";
-    };
-
-    # 主机名 (用于 shell alias)
-    hostName = mkOption {
-      type = types.str;
-      default = "default";
-      description = "主机名";
     };
 
     # SSH Agent 配置

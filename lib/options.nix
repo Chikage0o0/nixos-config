@@ -31,19 +31,6 @@ in
       example = "ssh-ed25519 AAAA...";
     };
 
-    # 路径配置
-    configDir = mkOption {
-      type = types.str;
-      default = "~/nixos-config";
-      description = "NixOS 配置目录路径";
-    };
-
-    sshKeysDir = mkOption {
-      type = types.str;
-      default = "~/nixos-config/ssh-keys";
-      description = "SSH 私钥目录路径";
-    };
-
     # Nix 构建配置
     nixMaxJobs = mkOption {
       type = types.either types.int (types.enum [ "auto" ]);
