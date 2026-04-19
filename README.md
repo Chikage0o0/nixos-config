@@ -137,8 +137,6 @@ nixos-config/
     isWSL = false;
     isNvidia = true;
     enableDae = true;
-    enableNetbird = false;
-
     # 路径配置
     configDir = "~/nixos-config-private";
     sshKeysDir = "~/nixos-config-private/ssh-keys";

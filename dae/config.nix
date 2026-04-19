@@ -183,7 +183,7 @@
   # 详情：https://github.com/daeuniverse/dae/blob/main/docs/en/configuration/routing.md
   routing {
       # 本机网络管理器直连，避免绑定 WAN 接口时出现连通性误报。
-      pname(NetworkManager, systemd-resolved, dnsmasq, netbird) -> direct
+      pname(NetworkManager, systemd-resolved, dnsmasq) -> direct
 
       dip(224.0.0.0/3, 'ff00::/8', 100.64.0.0/16) -> direct
 

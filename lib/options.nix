@@ -64,12 +64,6 @@ in
       description = "是否启用 NVIDIA 显卡支持";
     };
 
-    enableNetbird = mkOption {
-      type = types.bool;
-      default = false;
-      description = "是否启用 Netbird VPN";
-    };
-
     enableDae = mkOption {
       type = types.bool;
       default = false;
@@ -81,7 +75,9 @@ in
       type = types.attrsOf (types.listOf types.str);
       default = { };
       description = "额外的 hosts 映射";
-      example = { "1.1.1.1" = [ "example.com" ]; };
+      example = {
+        "1.1.1.1" = [ "example.com" ];
+      };
     };
 
     # dae 代理配置 (机密信息由 sops 管理)
