@@ -5,28 +5,9 @@
   description = "My NixOS Private Configuration";
 
   inputs = {
-    # 引入公共模块库（nixpkgs 从此获取）
+    # 引入公共模块库（nixpkgs、home-manager、nixos-wsl、sops-nix 从此获取）
     nixos-config-public = {
       url = "github:Chikage0o0/nixos-config";
-    };
-
-    # Home Manager - 用户级别配置管理
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixos-config-public";
-    };
-
-    # NixOS-WSL - Windows Subsystem for Linux 支持
-    # 物理机部署可以移除此 input
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
-      inputs.nixpkgs.follows = "nixos-config-public";
-    };
-
-    # sops-nix - 通过 age/PGP 加密管理机密文件
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixos-config-public";
     };
   };
 
@@ -34,13 +15,13 @@
     {
       self,
       nixos-config-public,
-      home-manager,
-      nixos-wsl,
-      sops-nix,
       ...
     }@inputs:
     let
       nixpkgs = nixos-config-public.inputs.nixpkgs;
+      home-manager = nixos-config-public.inputs.home-manager;
+      nixos-wsl = nixos-config-public.inputs.nixos-wsl;
+      sops-nix = nixos-config-public.inputs.sops-nix;
 
       # 主机配置映射表
       # 键为主机名（需与 `hosts/` 下的目录名一致）
