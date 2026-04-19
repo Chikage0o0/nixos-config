@@ -2,6 +2,8 @@
 {
   virtualisation = {
     containers.enable = true;
+    # 与 Docker 的短镜像名解析保持一致，未限定 registry 时默认走 docker.io。
+    containers.registries.search = [ "docker.io" ];
 
     podman = {
       enable = true;

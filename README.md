@@ -264,7 +264,7 @@ nixos-config/
 | `nvidia` | NVIDIA/CUDA 支持 |
 | `dae` | dae 透明代理 |
 | `openssh` | SSH 服务 |
-| `virtualisation` | Podman（兼容 Docker CLI） |
+| `virtualisation` | Podman（兼容 Docker CLI，未限定镜像名默认解析到 `docker.io`） |
 | `packages` | 系统包 |
 
 ### homeModules
