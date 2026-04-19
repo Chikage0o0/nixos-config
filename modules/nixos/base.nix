@@ -12,7 +12,7 @@ in
   boot.loader.systemd-boot.enable = !cfg.isWSL;
   boot.loader.systemd-boot.configurationLimit = 6;
   boot.loader.efi.canTouchEfiVariables = !cfg.isWSL;
-  boot.kernelPackages = pkgs.linuxPackages_6_18;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   zramSwap =
     if cfg.isWSL then
       {
