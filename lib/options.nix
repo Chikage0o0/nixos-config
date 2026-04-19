@@ -67,17 +67,12 @@ in
       };
     };
 
-    # dae 代理配置 (机密信息由 sops 管理)
-    daeNodes = mkOption {
-      type = types.attrsOf types.str;
-      default = { };
-      description = "dae 节点配置";
-    };
-
-    daeSubscriptions = mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = "dae 订阅链接";
+    # dae 代理配置 (推荐通过 sops 提供完整配置文件)
+    daeConfigFile = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "dae 完整配置文件路径";
+      example = "/run/secrets/dae/config";
     };
 
     # Opencode 配置

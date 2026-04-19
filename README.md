@@ -13,7 +13,7 @@
 ```
 ┌─────────────────────────────────────────┐
 │         本仓库 (公开模块库)              │
-│  modules/  lib/  pkgs/  dae/            │
+│  modules/  lib/  pkgs/                  │
 │  可复用的 NixOS 和 Home Manager 模块     │
 └─────────────────┬───────────────────────┘
                   │ flake input
@@ -75,8 +75,6 @@ nixos-config/
 │       ├── cli-tools.nix  # 现代 CLI 工具
 │       ├── opencode.nix   # OpenCode AI 助手
 │       └── packages.nix   # 用户包
-├── dae/
-│   └── config.nix         # dae 透明代理配置模板
 └── pkgs/
     └── v2ray-rules-dat/   # GeoIP/GeoSite 规则包
 ```
@@ -137,21 +135,23 @@ nixos-config/
     isWSL = false;
     isNvidia = true;
     enableDae = true;
+
     # Nix 构建
     nixMaxJobs = 8;
 
     # 网络
     extraHosts = { };
 
-    # dae 代理 (建议通过 sops 管理)
-    daeNodes = { };
-    daeSubscriptions = [ ];
+    # dae 代理 (完整配置文件路径，建议来自 sops secret)
+    daeConfigFile = config.sops.secrets."dae/config".path;
 
     # OpenCode
     opencodeSettings = { };
   };
 }
 ```
+
+`dae` 的完整配置文件应保存在私有仓库的 `sops` secret 中，再通过 `myConfig.daeConfigFile` 把运行时路径传给公共模块。这样节点、订阅和鉴权信息不会进入 `nix store`。
 
 ---
 
