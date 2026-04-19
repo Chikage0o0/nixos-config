@@ -5,9 +5,13 @@
 }:
 let
   cfg = config.myConfig;
+  emulateArchs = builtins.filter (system: system != pkgs.stdenv.hostPlatform.system) [
+    "aarch64-linux"
+    "x86_64-linux"
+  ];
 in
 {
-  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+  boot.binfmt.emulatedSystems = emulateArchs;
 
   boot.loader.systemd-boot.enable = !cfg.isWSL;
   boot.loader.systemd-boot.configurationLimit = 6;

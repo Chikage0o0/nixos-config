@@ -28,6 +28,7 @@
 ```
 
 **为什么这样设计？**
+
 - 通用模块开源共享，个性化配置私有管理
 - 机密信息通过 [sops-nix](https://github.com/Mic92/sops-nix) + age 加密，永远不进入 nix store
 - 通过 hostname 自动识别主机配置，`deploy.sh` 一键部署
@@ -35,6 +36,8 @@
 ---
 
 ## 快速开始
+
+如果你已经装好了一个最小可启动的 NixOS，当前主要还在用 `root` 和临时 `nix` 命令，想直接切到这套配置，先看这篇迁移指南：[`docs/migration-from-root-nix.md`](docs/migration-from-root-nix.md)
 
 ### 前置条件
 
@@ -58,7 +61,8 @@ git init
 
 ```bash
 # 进入包含所需工具的 shell
-nix shell nixpkgs#age nixpkgs#ssh-to-age nixpkgs#sops
+nix --extra-experimental-features "nix-command flakes" \
+  shell nixpkgs#age nixpkgs#ssh-to-age nixpkgs#sops nixpkgs#git nixpkgs#gh
 
 # 生成管理员 age 密钥
 age-keygen -o ~/.config/sops/age/keys.txt
@@ -118,34 +122,34 @@ chmod +x deploy.sh
 
 在主机配置的 `myConfig` 块中设置，由公共模块库读取。
 
-| 选项 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `username` | string | **必填** | 主用户名 |
-| `userFullName` | string | **必填** | 用户全名（用于 Git 等） |
-| `userEmail` | string | **必填** | 用户邮箱 |
-| `sshPublicKey` | string | **必填** | SSH 公钥 |
-| `nixMaxJobs` | int \| "auto" | `"auto"` | Nix 最大并行构建数 |
-| `isWSL` | bool | `false` | 是否为 WSL 环境 |
-| `isNvidia` | bool | `false` | 启用 NVIDIA 闭源驱动 + CUDA |
-| `enableDae` | bool | `false` | 启用 dae (eBPF) 透明代理 |
-| `extraHosts` | attrsOf (listOf str) | `{ }` | 额外的 `/etc/hosts` 映射 |
-| `daeConfigFile` | nullOr string | `null` | dae 完整配置文件路径（推荐通过 sops 提供） |
-| `opencodeSettings` | attrs | `{ }` | OpenCode 自定义配置 |
+| 选项               | 类型                 | 默认值   | 说明                                       |
+| ------------------ | -------------------- | -------- | ------------------------------------------ |
+| `username`         | string               | **必填** | 主用户名                                   |
+| `userFullName`     | string               | **必填** | 用户全名（用于 Git 等）                    |
+| `userEmail`        | string               | **必填** | 用户邮箱                                   |
+| `sshPublicKey`     | string               | **必填** | SSH 公钥                                   |
+| `nixMaxJobs`       | int \| "auto"        | `"auto"` | Nix 最大并行构建数                         |
+| `isWSL`            | bool                 | `false`  | 是否为 WSL 环境                            |
+| `isNvidia`         | bool                 | `false`  | 启用 NVIDIA 闭源驱动 + CUDA                |
+| `enableDae`        | bool                 | `false`  | 启用 dae (eBPF) 透明代理                   |
+| `extraHosts`       | attrsOf (listOf str) | `{ }`    | 额外的 `/etc/hosts` 映射                   |
+| `daeConfigFile`    | nullOr string        | `null`   | dae 完整配置文件路径（推荐通过 sops 提供） |
+| `opencodeSettings` | attrs                | `{ }`    | OpenCode 自定义配置                        |
 
 ### Home Manager 级 myConfig 选项
 
 在 `home-manager.users.<name>.myConfig` 中设置。
 
-| 选项 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `username` | string | **必填** | 主用户名 |
-| `userFullName` | string | **必填** | 用户全名 |
-| `userEmail` | string | **必填** | 用户邮箱 |
-| `sshPublicKey` | string | **必填** | SSH 公钥 |
-| `sshSopsSecrets` | listOf string | `[ ]` | 要加载到 ssh-agent 的 sops secret 名称 |
-| `opencodeSettings` | attrs | `{ }` | OpenCode 自定义配置 |
-| `opencodeConfigFile` | nullOr string | `null` | 运行时生成的 OpenCode 配置路径（含机密，优先于 opencodeSettings） |
-| `enableSshAgent` | bool | `true` | 自动启动 ssh-agent 并加载私钥 |
+| 选项                 | 类型          | 默认值   | 说明                                                              |
+| -------------------- | ------------- | -------- | ----------------------------------------------------------------- |
+| `username`           | string        | **必填** | 主用户名                                                          |
+| `userFullName`       | string        | **必填** | 用户全名                                                          |
+| `userEmail`          | string        | **必填** | 用户邮箱                                                          |
+| `sshPublicKey`       | string        | **必填** | SSH 公钥                                                          |
+| `sshSopsSecrets`     | listOf string | `[ ]`    | 要加载到 ssh-agent 的 sops secret 名称                            |
+| `opencodeSettings`   | attrs         | `{ }`    | OpenCode 自定义配置                                               |
+| `opencodeConfigFile` | nullOr string | `null`   | 运行时生成的 OpenCode 配置路径（含机密，优先于 opencodeSettings） |
+| `enableSshAgent`     | bool          | `true`   | 自动启动 ssh-agent 并加载私钥                                     |
 
 ---
 
@@ -255,28 +259,28 @@ nixos-config/
 
 ### nixosModules
 
-| 模块 | 描述 |
-|------|------|
-| `default` | 完整 NixOS 模块聚合（推荐直接使用） |
-| `base` | 基础系统配置 |
-| `network` | 网络配置 |
-| `users` | 用户管理 |
-| `nvidia` | NVIDIA/CUDA 支持 |
-| `dae` | dae 透明代理 |
-| `openssh` | SSH 服务 |
+| 模块             | 描述                                                          |
+| ---------------- | ------------------------------------------------------------- |
+| `default`        | 完整 NixOS 模块聚合（推荐直接使用）                           |
+| `base`           | 基础系统配置                                                  |
+| `network`        | 网络配置                                                      |
+| `users`          | 用户管理                                                      |
+| `nvidia`         | NVIDIA/CUDA 支持                                              |
+| `dae`            | dae 透明代理                                                  |
+| `openssh`        | SSH 服务                                                      |
 | `virtualisation` | Podman（兼容 Docker CLI，未限定镜像名默认解析到 `docker.io`） |
-| `packages` | 系统包 |
+| `packages`       | 系统包                                                        |
 
 ### homeModules
 
-| 模块 | 描述 |
-|------|------|
+| 模块      | 描述                       |
+| --------- | -------------------------- |
 | `default` | 完整 Home Manager 模块聚合 |
 
 ### overlays
 
-| Overlay | 描述 |
-|---------|------|
+| Overlay   | 描述                                    |
+| --------- | --------------------------------------- |
 | `default` | v2ray-rules-dat、opencode、rtk 自定义包 |
 
 ---
