@@ -1,0 +1,28 @@
+# .sops.yaml
+# sops 配置文件 - 定义密钥和加密规则
+#
+# 所需工具：nix shell nixpkgs#age nixpkgs#ssh-to-age nixpkgs#sops
+#
+# 步骤：
+# 1. 生成 age 密钥对：
+#    age-keygen -o ~/.config/sops/age/keys.txt
+# 2. 查看公钥（填入下方 admin 处）：
+#    age-keygen -y ~/.config/sops/age/keys.txt
+# 3. 在目标主机上，从 SSH host key 派生 age 公钥：
+#    ssh-keyscan localhost 2>/dev/null | ssh-to-age
+#    或：cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
+
+keys:
+  # 管理员 age 密钥（你的本地密钥）
+  - &admin age1_REPLACE_WITH_YOUR_PUBLIC_KEY
+
+  # 主机密钥（从目标主机的 SSH host ed25519 公钥派生）
+  - &my-host age1_REPLACE_WITH_HOST_PUBLIC_KEY
+
+creation_rules:
+  # my-host 主机的机密文件
+  - path_regex: hosts/my-host/secrets\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *my-host
