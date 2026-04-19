@@ -40,19 +40,21 @@
       ...
     }@inputs:
     let
-      system = "x86_64-linux";
       nixpkgs = nixos-config-public.inputs.nixpkgs;
 
       # 主机配置映射表
-      # 键为主机名（需与 `hosts/` 下的目录名一致），值为主机配置路径
+      # 键为主机名（需与 `hosts/` 下的目录名一致）
+      # 每台主机独立指定 system，支持 x86_64-linux 和 aarch64-linux
       hostConfigs = {
-        "my-host" = ./hosts/my-host;
+        "my-host" = {
+          path = ./hosts/my-host;
+          system = "x86_64-linux";
+        };
       };
 
-      # 通用主机构建函数
-      # 为每台主机组装 NixOS 配置：公共模块 + sops + 主机配置 + Home Manager
       mkHost =
-        hostname: hostPath:
+        hostname:
+        { path, system }:
         nixpkgs.lib.nixosSystem {
           inherit system;
 
@@ -79,7 +81,7 @@
             sops-nix.nixosModules.sops
 
             # 导入主机特定配置
-            hostPath
+            path
 
             # Home Manager 集成
             home-manager.nixosModules.home-manager

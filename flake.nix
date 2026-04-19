@@ -24,13 +24,8 @@
     {
       self,
       nixpkgs,
-      home-manager,
       ...
     }@inputs:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-    in
     {
       # 导出 NixOS 模块
       nixosModules = {
