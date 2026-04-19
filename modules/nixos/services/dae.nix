@@ -16,7 +16,7 @@ in
       }
     );
     assets = [
-      (pkgs.callPackage ../../../pkgs/v2ray-rules-dat/v2ray-rules-dat.nix { })
+      (pkgs.callPackage ../../../pkgs/v2ray-rules-dat { })
     ];
   };
 }
