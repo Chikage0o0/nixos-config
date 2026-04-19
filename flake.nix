@@ -50,13 +50,6 @@
         default = ./modules/home;
       };
 
-      # 导出 overlays (v2ray-rules-dat 等)
-      overlays.default = final: prev: {
-        v2ray-rules-dat = final.callPackage ./pkgs/v2ray-rules-dat { };
-        opencode = final.callPackage ./pkgs/opencode { };
-        rtk = final.callPackage ./pkgs/rtk { };
-      };
-
       # 导出 lib 函数
       lib = import ./lib;
     };
