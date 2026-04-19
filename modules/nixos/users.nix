@@ -13,7 +13,7 @@ in
     extraGroups = [
       "networkmanager"
       "wheel"
-      "docker"
+      "podman"
       "dialout"
     ];
     shell = pkgs.zsh;

@@ -16,7 +16,11 @@
     python3
     python3Packages.pip
     uv
-    docker-compose
+    podman-compose
+    # 保留旧脚本里的 docker-compose 入口，实际委托给 podman-compose。
+    (writeShellScriptBin "docker-compose" ''
+      exec ${podman-compose}/bin/podman-compose "$@"
+    '')
     age
     sops
     ssh-to-age

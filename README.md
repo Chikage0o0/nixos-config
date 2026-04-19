@@ -231,7 +231,7 @@ nixos-config/
 │   │   ├── network.nix    # 网络配置
 │   │   ├── users.nix      # 用户管理
 │   │   ├── packages.nix   # 系统包
-│   │   ├── virtualisation.nix  # Docker
+│   │   ├── virtualisation.nix  # Podman
 │   │   ├── hardware/
 │   │   │   └── nvidia.nix # NVIDIA/CUDA 支持
 │   │   └── services/
@@ -264,7 +264,7 @@ nixos-config/
 | `nvidia` | NVIDIA/CUDA 支持 |
 | `dae` | dae 透明代理 |
 | `openssh` | SSH 服务 |
-| `virtualisation` | Docker |
+| `virtualisation` | Podman（兼容 Docker CLI） |
 | `packages` | 系统包 |
 
 ### homeModules
