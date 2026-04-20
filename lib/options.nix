@@ -133,6 +133,16 @@ in
       description = "是否启用 Cockpit 及其文件管理、Podman 面板，并自动放行默认 Web 端口";
     };
 
+    cockpitExtraOrigins = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "额外允许的 Cockpit Web 来源，使用完整 origin 字符串，例如 https://cockpit.example.com";
+      example = [
+        "https://cockpit.example.com"
+        "https://admin.example.com:9090"
+      ];
+    };
+
     # 网络配置
     extraHosts = mkOption {
       type = types.attrsOf (types.listOf types.str);
