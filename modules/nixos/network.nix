@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   ...
 }:
 let
@@ -12,5 +13,10 @@ in
 
   networking.firewall = {
     enable = !cfg.isWSL;
+  };
+
+  boot.kernel.sysctl = lib.optionalAttrs (!cfg.isWSL) {
+    "net.core.default_qdisc" = "fq";
+    "net.ipv4.tcp_congestion_control" = "bbr";
   };
 }
