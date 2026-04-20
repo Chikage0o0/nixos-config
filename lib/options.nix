@@ -1,8 +1,9 @@
 # lib/options.nix
 # 定义 myConfig 选项模块，用于替代原有的 varsExt
-{ lib, ... }:
+{ config, lib, ... }:
 let
   inherit (lib) mkOption types;
+  cfg = config.myConfig;
   zramSwapType = types.submodule {
     freeformType = types.attrsOf types.anything;
 
@@ -124,6 +125,12 @@ in
       type = types.bool;
       default = false;
       description = "是否启用 dae 透明代理";
+    };
+
+    enableCockpit = mkOption {
+      type = types.bool;
+      default = !cfg.isWSL;
+      description = "是否启用 Cockpit 及其文件管理、Podman 面板，并自动放行默认 Web 端口";
     };
 
     # 网络配置

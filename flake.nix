@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -31,10 +32,37 @@
       nixpkgs,
       ...
     }@inputs:
+    let
+      defaultOverlay =
+        final: prev:
+        let
+          unstablePkgs = import inputs.nixpkgs-unstable {
+            system = prev.stdenv.hostPlatform.system;
+          };
+        in
+        {
+          v2ray-rules-dat = final.callPackage ./pkgs/v2ray-rules-dat { };
+          opencode = final.callPackage ./pkgs/opencode { };
+          rtk = final.callPackage ./pkgs/rtk { };
+
+          cockpit = unstablePkgs.cockpit;
+          cockpit-files = unstablePkgs.cockpit-files;
+          cockpit-podman = unstablePkgs.cockpit-podman;
+        };
+    in
     {
+      overlays.default = defaultOverlay;
+
       # 导出 NixOS 模块
       nixosModules = {
-        default = ./modules/nixos;
+        default = {
+          disabledModules = [ "services/monitoring/cockpit.nix" ];
+          imports = [
+            "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/cockpit.nix"
+            ./modules/nixos
+          ];
+          nixpkgs.overlays = [ self.overlays.default ];
+        };
         base = ./modules/nixos/base.nix;
         network = ./modules/nixos/network.nix;
         users = ./modules/nixos/users.nix;
