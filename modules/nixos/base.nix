@@ -53,20 +53,12 @@ in
         enable = false;
       }
     else
-      {
-        enable = true;
-        memoryPercent = 50;
-      };
+      cfg.swap.zram;
   swapDevices =
     if cfg.isWSL then
       [ ]
     else
-      [
-        {
-          device = "/var/lib/swapfile";
-          size = 16 * 1024;
-        }
-      ];
+      cfg.swap.devices;
 
   nix.settings = {
     experimental-features = [
