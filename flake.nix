@@ -34,6 +34,7 @@
     let
       defaultOverlay = final: prev: {
         v2ray-rules-dat = final.callPackage ./pkgs/v2ray-rules-dat { };
+        opencode = final.callPackage ./pkgs/opencode { };
       };
     in
     {
