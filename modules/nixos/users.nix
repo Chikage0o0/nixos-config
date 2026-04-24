@@ -10,6 +10,7 @@ in
   users.users.${cfg.username} = {
     isNormalUser = true;
     description = cfg.userFullName;
+    linger = true;
     extraGroups = [
       "networkmanager"
       "wheel"
