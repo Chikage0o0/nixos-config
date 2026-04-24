@@ -292,7 +292,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | v2ray-rules-dat、opencode、rtk 自定义包 |
+| `default` | v2ray-rules-dat、opencode 自定义包 |
 
 ---
 

@@ -10,8 +10,6 @@ let
   opencodeConfigPath = ".config/opencode/opencode.json";
 in
 {
-  home.packages = [ pkgs.rtk ];
-
   home.file = {
     ".config/opencode/agents/".source = "${inputs.opencode-config}/agents";
     ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
