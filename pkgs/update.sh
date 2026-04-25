@@ -144,55 +144,6 @@ update_opencode() {
 
     echo "[opencode] ✓ 已更新到 $latest_version"
 }
-
-# ============================================================
-# rtk
-# ============================================================
-update_rtk() {
-    local nix_file="$SCRIPT_DIR/rtk/default.nix"
-    if [ ! -f "$nix_file" ]; then
-        echo "[rtk] 跳过: 找不到 $nix_file"
-        return 0
-    fi
-
-    echo "[rtk] 正在获取最新版本信息..."
-    local latest_tag
-    latest_tag=$(gh_latest_tag "rtk-ai/rtk")
-
-    if [ -z "$latest_tag" ]; then
-        echo "[rtk] 错误: 无法获取最新版本号"
-        return 0
-    fi
-
-    local latest_version="${latest_tag#v}"
-
-    local current_version
-    current_version=$(grep -oP 'version = "\K[^"]+' "$nix_file" | head -1 || true)
-
-    if [ "$latest_version" = "$current_version" ]; then
-        echo "[rtk] 版本已是最新 ($current_version)，跳过"
-        return 0
-    fi
-
-    echo "[rtk] $current_version -> $latest_version"
-
-    local hash
-    hash=$(nix-prefetch-url --unpack "https://github.com/rtk-ai/rtk/archive/${latest_tag}.tar.gz" 2>/dev/null | tail -1 || true)
-
-    if [ -z "$hash" ]; then
-        echo "[rtk] 错误: 无法获取 hash"
-        return 0
-    fi
-
-    local sri_hash
-    sri_hash=$(nix hash convert --hash-algo sha256 --to sri "$hash" 2>/dev/null || echo "sha256-$hash")
-
-    sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
-    sed -i "s|hash = \"[^\"]*\";|hash = \"${sri_hash}\";|" "$nix_file"
-
-    echo "[rtk] ✓ 已更新到 $latest_version (请手动运行 nix build 验证 cargoLock)"
-}
-
 # ============================================================
 # 主流程
 # ============================================================
@@ -204,8 +155,6 @@ echo ""
 update_v2ray_rules_dat
 echo ""
 update_opencode
-echo ""
-update_rtk
 
 echo ""
 echo "=========================================="
