@@ -46,7 +46,8 @@ in
     }
   ];
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # OpenZFS 等内核外模块通常滞后最新内核；默认使用 nixpkgs 支持最完整的内核线。
+  boot.kernelPackages = pkgs.linuxPackages;
 
   nix.settings = {
     experimental-features = [
