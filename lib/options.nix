@@ -4,23 +4,6 @@
 let
   inherit (lib) mkOption types;
   cfg = config.myConfig;
-  zramSwapType = types.submodule {
-    freeformType = types.attrsOf types.anything;
-
-    options = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-        description = "是否启用 zram swap";
-      };
-
-      memoryPercent = mkOption {
-        type = types.int;
-        default = 50;
-        description = "zram 可占用的内存百分比";
-      };
-    };
-  };
 in
 {
   options.myConfig = {
@@ -78,41 +61,6 @@ in
       default = null;
       description = "传统 BIOS 模式下 GRUB 的安装目标磁盘路径";
       example = "/dev/disk/by-id/wwn-0x500001234567890a";
-    };
-
-    swap = mkOption {
-      type = types.submodule {
-        options = {
-          zram = mkOption {
-            type = zramSwapType;
-            default = { };
-            description = "主机级 zramSwap 配置，未设置的字段沿用公共默认值";
-            example = {
-              enable = true;
-              memoryPercent = 25;
-            };
-          };
-
-          devices = mkOption {
-            type = types.listOf (types.attrsOf types.anything);
-            default = [
-              {
-                device = "/var/lib/swapfile";
-                size = 16 * 1024;
-              }
-            ];
-            description = "主机级 swapDevices 配置，会原样传给 NixOS 的 swapDevices 选项";
-            example = [
-              {
-                device = "/swapfile";
-                size = 8 * 1024;
-              }
-            ];
-          };
-        };
-      };
-      default = { };
-      description = "主机级 swap 配置，允许按 host 覆盖 zram 与 swapDevices";
     };
 
     isNvidia = mkOption {

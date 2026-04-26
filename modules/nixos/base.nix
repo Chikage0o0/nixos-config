@@ -30,7 +30,7 @@ in
       device = "nodev";
     })
     (lib.mkIf (!cfg.isWSL && isBIOS && cfg.grubDevice != null) {
-      device = cfg.grubDevice;
+      devices = lib.mkForce [ cfg.grubDevice ];
     })
   ];
   boot.loader.efi.canTouchEfiVariables = !cfg.isWSL && isUEFI;
@@ -47,18 +47,6 @@ in
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  zramSwap =
-    if cfg.isWSL then
-      {
-        enable = false;
-      }
-    else
-      cfg.swap.zram;
-  swapDevices =
-    if cfg.isWSL then
-      [ ]
-    else
-      cfg.swap.devices;
 
   nix.settings = {
     experimental-features = [
