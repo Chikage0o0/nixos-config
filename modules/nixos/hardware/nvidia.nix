@@ -4,17 +4,8 @@
   pkgs,
   ...
 }:
-let
-  cfg = config.myConfig;
-in
 {
-  options.hardware.nvidia.enable = lib.mkOption {
-    type = lib.types.bool;
-    default = (!cfg.isWSL) && cfg.isNvidia;
-    description = "是否启用 NVIDIA 显卡支持";
-  };
-
-  config = lib.mkIf config.hardware.nvidia.enable {
+  config = lib.mkIf config.platform.machine.nvidia.enable {
     services.xserver = {
       enable = false;
       videoDrivers = [ "nvidia" ];

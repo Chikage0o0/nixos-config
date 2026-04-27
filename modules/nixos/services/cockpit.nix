@@ -5,16 +5,16 @@
   ...
 }:
 let
-  cfg = config.myConfig;
+  cfg = config.platform.services.cockpit;
   cockpitPort = toString config.services.cockpit.port;
   cockpitHostOrigin = "https://${config.networking.hostName}:${cockpitPort}";
   cockpitExtraOrigins = lib.unique (
     lib.optional (config.networking.hostName != "" && config.networking.hostName != "localhost") cockpitHostOrigin
-    ++ cfg.cockpitExtraOrigins
+    ++ cfg.extraOrigins
   );
 in
 {
-  config = lib.mkIf cfg.enableCockpit {
+  config = lib.mkIf cfg.enable {
     services.cockpit = {
       enable = true;
       openFirewall = true;
