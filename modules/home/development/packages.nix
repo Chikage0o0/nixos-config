@@ -22,13 +22,13 @@ let
     ssh-to-age
     gh
     zellij
-  ];
-  fullstackPackages = with pkgs; [
     bun
     nodejs
     python3
     python3Packages.pip
     uv
+  ];
+  fullstackPackages = with pkgs; [
     go
     rustc
     cargo
