@@ -1,7 +1,8 @@
 { config, lib, ... }:
 {
-  users.users.${config.platform.user.name}.hashedPasswordFile =
-    lib.mkIf (config ? sops) config.sops.secrets."user/hashedPassword".path;
+  users.users.${config.platform.user.name}.hashedPasswordFile = lib.mkIf (
+    config ? sops
+  ) config.sops.secrets."user/hashedPassword".path;
 
   sops.templates."opencode-config.json" = {
     owner = config.platform.user.name;

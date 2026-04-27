@@ -9,7 +9,9 @@ let
   cockpitPort = toString config.services.cockpit.port;
   cockpitHostOrigin = "https://${config.networking.hostName}:${cockpitPort}";
   cockpitExtraOrigins = lib.unique (
-    lib.optional (config.networking.hostName != "" && config.networking.hostName != "localhost") cockpitHostOrigin
+    lib.optional (
+      config.networking.hostName != "" && config.networking.hostName != "localhost"
+    ) cockpitHostOrigin
     ++ cfg.extraOrigins
   );
 in

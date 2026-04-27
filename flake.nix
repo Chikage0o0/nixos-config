@@ -62,7 +62,7 @@
       formatter = nixpkgs.lib.genAttrs [
         "x86_64-linux"
         "aarch64-linux"
-      ] (system: nixpkgs.legacyPackages.${system}.nixfmt);
+      ] (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
 
       # 导出 eval 正确性 checks
       checks = import ./lib/platform/checks.nix { inherit inputs self; };

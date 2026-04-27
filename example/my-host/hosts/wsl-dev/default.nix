@@ -6,6 +6,7 @@
     interop.register = true;
   };
 
-  users.users.${config.platform.user.name}.hashedPasswordFile =
-    lib.mkIf (config ? sops) config.sops.secrets."user/hashedPassword".path;
+  users.users.${config.platform.user.name}.hashedPasswordFile = lib.mkIf (
+    config ? sops
+  ) config.sops.secrets."user/hashedPassword".path;
 }

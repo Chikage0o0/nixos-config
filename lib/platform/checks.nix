@@ -6,16 +6,19 @@ let
   systems = [ "x86_64-linux" ];
   lib = inputs.nixpkgs.lib;
 
-  mkEvalCheck = system: name: host:
+  mkEvalCheck =
+    system: name: host:
     let
       pkgs = inputs.nixpkgs.legacyPackages.${system};
       config = self.lib.mkHost (host // { inherit system; });
     in
-    pkgs.runCommand "${name}-eval" {
-      evaluatedSystem = config.config.system.build.toplevel.drvPath;
-    } ''
-      touch $out
-    '';
+    pkgs.runCommand "${name}-eval"
+      {
+        evaluatedSystem = config.config.system.build.toplevel.drvPath;
+      }
+      ''
+        touch $out
+      '';
 
   user = {
     name = "example";
@@ -29,9 +32,14 @@ let
     stateVersion = "25.11";
     secrets.sops.enable = false;
     # NixOS 强制要求定义根文件系统；eval-only check 使用最小 mock
-    extraModules = [{
-      fileSystems."/" = { device = "none"; fsType = "tmpfs"; };
-    }];
+    extraModules = [
+      {
+        fileSystems."/" = {
+          device = "none";
+          fsType = "tmpfs";
+        };
+      }
+    ];
   };
 
   hosts = {
@@ -96,6 +104,5 @@ let
   };
 in
 lib.genAttrs systems (
-  system:
-  lib.mapAttrs' (name: host: lib.nameValuePair name (mkEvalCheck system name host)) hosts
+  system: lib.mapAttrs' (name: host: lib.nameValuePair name (mkEvalCheck system name host)) hosts
 )
