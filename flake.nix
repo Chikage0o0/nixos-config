@@ -26,7 +26,7 @@
   };
 
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
       ...
@@ -36,6 +36,7 @@
         v2ray-rules-dat = final.callPackage ./pkgs/v2ray-rules-dat { };
         opencode = final.callPackage ./pkgs/opencode { };
       };
+      platformLib = import ./lib { inherit inputs self; };
     in
     {
       overlays.default = defaultOverlay;
@@ -62,6 +63,6 @@
       };
 
       # 导出 lib 函数
-      lib = import ./lib;
+      lib = platformLib;
     };
 }
