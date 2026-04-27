@@ -43,24 +43,29 @@
 
       # 导出 NixOS 模块
       nixosModules = {
-        default = {
+        default = self.nixosModules.platform;
+        platform = {
           imports = [ ./modules/nixos ];
           nixpkgs.overlays = [ self.overlays.default ];
         };
-        base = ./modules/nixos/base.nix;
-        network = ./modules/nixos/network.nix;
-        users = ./modules/nixos/users.nix;
-        virtualisation = ./modules/nixos/virtualisation.nix;
-        packages = ./modules/nixos/packages.nix;
-        dae = ./modules/nixos/services/dae.nix;
-        openssh = ./modules/nixos/services/openssh.nix;
-        nvidia = ./modules/nixos/hardware/nvidia.nix;
+        profiles = import ./profiles;
+        roles = import ./roles;
       };
 
       # 导出 Home Manager 模块
       homeModules = {
-        default = ./modules/home;
+        default = self.homeModules.platform;
+        platform = ./modules/home;
       };
+
+      # 导出格式化工具
+      formatter = nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "aarch64-linux"
+      ] (system: nixpkgs.legacyPackages.${system}.nixfmt);
+
+      # 导出 eval 正确性 checks
+      checks = import ./lib/platform/checks.nix { inherit inputs self; };
 
       # 导出 lib 函数
       lib = platformLib;
