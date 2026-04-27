@@ -2,6 +2,14 @@
 
 这是 [nixos-config](https://github.com/Chikage0o0/nixos-config) 公共模块库的配套私有仓库模板。
 
+本模板预置了三台主机示例：
+
+- **wsl-dev** — WSL 开发环境，含全栈开发工具、AI 工具和 Podman
+- **server** — 服务器，含远程管理和 Podman
+- **workstation** — 物理工作站，含全栈开发、AI 工具、Podman、NVIDIA/CUDA
+
+所有主机使用 `public.lib.mkHost` 声明式定义，profile + role 自由组合。
+
 ## 快速开始
 
 ### 1. 初始化仓库
@@ -41,63 +49,91 @@ ssh-keyscan localhost 2>/dev/null | ssh-to-age
 cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
 ```
 
-将输出的 age 公钥填入 `.sops.yaml` 的 `&my-host` 处。
+将输出的 age 公钥填入 `.sops.yaml` 对应主机的密钥位置。
 
 ### 4. 编辑配置
 
 1. 编辑 `.sops.yaml` - 填入管理员和主机公钥
-2. 编辑 `hosts/my-host/default.nix` - 修改用户名、邮箱、SSH 公钥等
-3. 编辑 `hosts/my-host/secrets.yaml` - 填写真实密码和密钥
-4. 编辑 `hosts/opencode-config.template.json` - 自定义 AI 模型配置
+2. 编辑 `flake.nix` - 修改 `commonUser` 中的用户名、邮箱、SSH 公钥等，或调整 profile/role 组合
+3. 编辑 `hosts/<hostname>/secrets.yaml` - 填写真实密码和密钥
+4. 编辑 `templates/opencode-config.template.json` - 自定义 AI 模型配置
 
-公共模块对非 WSL 物理机默认采用 `grub + UEFI`；当前示例模板本身仍是 WSL 起点。如果目标机器是传统 BIOS，还要把 `myConfig.bootMode` 改成 `"bios"`，并填写 `myConfig.grubDevice = "/dev/disk/by-id/..."`。
+#### 主机声明示例
+
+```nix
+public.lib.mkHost {
+  hostname = "workstation";
+  system = "x86_64-linux";
+  user = commonUser;
+  profiles = [ "workstation-base" ];
+  roles = [
+    "development"
+    "fullstack-development"
+    "ai-tooling"
+    "container-host"
+    "ai-accelerated"
+  ];
+  machine = {
+    boot.mode = "uefi";
+    nvidia.enable = true;
+  };
+  # ... sops, extraModules, hardwareModules
+}
+```
 
 ### 5. 加密机密文件
 
 ```bash
 # 加密 secrets.yaml（.sops.yaml 配置正确后）
 sops -e --input-type yaml --output-type yaml \
-  hosts/my-host/secrets.yaml > /tmp/secrets.yaml
-mv /tmp/secrets.yaml hosts/my-host/secrets.yaml
+  hosts/workstation/secrets.yaml > /tmp/secrets.yaml
+mv /tmp/secrets.yaml hosts/workstation/secrets.yaml
 
 # 验证加密成功
-cat hosts/my-host/secrets.yaml
+cat hosts/workstation/secrets.yaml
 # 应看到 sops metadata 和加密后的内容
 ```
 
 ### 6. 部署
 
 ```bash
-# 确保当前主机名与 hostConfigs 中的键一致
+# 确保当前主机名与 nixosConfigurations 中的键一致
 hostname
-# 如果不一致，可以手动指定：./deploy.sh my-host
 
 ./deploy.sh
 ```
 
+如果当前主机是物理机（非 WSL），确保已复制 `hardware-configuration.nix` 到对应主机目录。
+
 ## 添加新主机
 
-1. 在 `hosts/` 下创建新目录，如 `hosts/laptop/`
-2. 复制 `hosts/my-host/default.nix` 并修改配置
+1. 在 `flake.nix` 的 `nixosConfigurations` 中添加新的 `mkHost` 声明
+2. 在 `hosts/` 下创建新目录，如 `hosts/laptop/`
 3. 非 WSL 环境需要将 `hardware-configuration.nix` 放入主机目录
 4. 在 `.sops.yaml` 中添加新主机密钥和加密规则
-5. 在 `flake.nix` 的 `hostConfigs` 中添加新条目
-6. 为新主机创建并加密 `secrets.yaml`
-
-如果新主机使用传统 BIOS，再额外设置 `myConfig.bootMode = "bios"` 和 `myConfig.grubDevice = "/dev/disk/by-id/..."`。
+5. 为新主机创建并加密 `secrets.yaml`
+6. 如果使用传统 BIOS，在 `machine.boot` 中设置 `mode = "bios"` 和 `grubDevice`
 
 ## 目录结构
 
 ```
 .
-├── flake.nix          # Flake 入口
+├── flake.nix          # Flake 入口，含 mkHost 主机声明
 ├── .sops.yaml         # sops 密钥配置
 ├── deploy.sh          # 部署脚本
 ├── hosts/
-│   ├── my-host/
-│   │   ├── default.nix            # 主机配置
-│   │   ├── hardware-configuration.nix  # 硬件配置（非 WSL 需要）
+│   ├── wsl-dev/
+│   │   ├── default.nix            # 主机特定配置
 │   │   └── secrets.yaml           # sops 加密的机密文件
+│   ├── server/
+│   │   ├── default.nix
+│   │   ├── hardware-configuration.nix
+│   │   └── secrets.yaml
+│   └── workstation/
+│       ├── default.nix
+│       ├── hardware-configuration.nix
+│       └── secrets.yaml
+├── templates/
 │   └── opencode-config.template.json   # OpenCode 配置模板
 └── README.md
 ```
@@ -107,3 +143,4 @@ hostname
 - `secrets.yaml` **必须**用 sops 加密后才能提交到 git
 - `hardware-configuration.nix` 由 `nixos-generate-config` 自动生成，不要手动编辑
 - 修改 `flake.nix` 中的 `nixos-config-public.url` 可以指向你自己的 fork
+- 如果目标机器是传统 BIOS，在 `mkHost` 的 `machine.boot` 中设置 `mode = "bios"` 并指定 `grubDevice`

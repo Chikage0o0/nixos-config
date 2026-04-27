@@ -45,7 +45,7 @@ su - "$TARGET_USER"
 
 如果你在安装 NixOS 时已经顺手创建好了长期使用的普通用户，直接切到那个用户继续即可。
 
-后文默认这个普通用户就是未来要写进 `myConfig.username` 的用户。
+后文默认这个普通用户就是未来要在 `mkHost` host 声明中 `user.name` 里填的用户。
 
 ## 1. 准备一次性工具环境
 
@@ -129,7 +129,7 @@ imports =
 
 ## 5. 准备 SSH 密钥
 
-示例配置里既需要公钥写入 `myConfig.sshPublicKey`，也会把私钥通过 sops 注入系统。所以如果你还没有自己的 SSH key，先生成一对。
+示例配置里既需要公钥填入 `mkHost` host 声明的 `user.sshPublicKey`，也会把私钥通过 sops 注入系统。所以如果你还没有自己的 SSH key，先生成一对。
 
 ```bash
 mkdir -p ~/.ssh
@@ -140,7 +140,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "$USER@$(hostname)"
 
 然后：
 
-1. 把 `~/.ssh/id_ed25519.pub` 的内容填到 `hosts/$HOSTNAME_FINAL/default.nix` 的 `myConfig.sshPublicKey`
+1. 把 `~/.ssh/id_ed25519.pub` 的内容填到 `flake.nix` 中 `mkHost` host 声明的 `user.sshPublicKey`
 2. 后面把 `~/.ssh/id_ed25519` 的内容填到 `hosts/$HOSTNAME_FINAL/secrets.yaml` 的 `ssh_private_key`
 
 如果你已经有现成 SSH key，直接复用即可。

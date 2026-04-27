@@ -10,10 +10,4 @@ in
 platform
 // {
   inherit platform;
-
-  # NixOS options 模块
-  optionsModule = ./options.nix;
-
-  # Home Manager options 模块
-  homeOptionsModule = ./home-options.nix;
 }

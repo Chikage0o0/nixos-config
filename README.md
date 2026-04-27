@@ -18,9 +18,9 @@
 │  example/ - 私有仓库模板                 │
 └─────────────────┬───────────────────────┘
                   │ flake input
-┌─────────────────▼───────────────────────┐
+┌──────────────────▼───────────────────────┐
 │         私有仓库（主机配置）              │
-│  hosts/<hostname>/                       │
+│  nixosConfigurations.<hostname>/          │
 │    ├── default.nix    # 主机特定配置     │
 │    ├── hardware-configuration.nix        │
 │    └── secrets.yaml   # sops 加密机密    │
@@ -31,7 +31,7 @@
 
 - 通用模块开源共享，个性化配置私有管理
 - 机密信息通过 [sops-nix](https://github.com/Mic92/sops-nix) + age 加密，永远不进入 nix store
-- 通过 hostname 自动识别主机配置，`deploy.sh` 一键部署
+- 通过 `lib.mkHost` 声明式定义主机，profile + role 自由组合
 
 ---
 
@@ -75,34 +75,28 @@ ssh-keyscan localhost 2>/dev/null | ssh-to-age
 # 将输出填入 .sops.yaml 的主机密钥处
 ```
 
-### 3. 编辑主机配置
+### 3. 编辑主机声明
 
-编辑 `hosts/my-host/default.nix`，修改以下内容：
+编辑 `flake.nix`，修改 `commonUser` 中的用户信息，或调整 profile/role 组合：
 
 ```nix
-myConfig = {
-  username = "your_username";       # 你的用户名
-  userFullName = "Your Name";       # 全名
-  userEmail = "your@email.com";     # 邮箱
-  sshPublicKey = "ssh-ed25519 ..."; # SSH 公钥
-  isWSL = false;                    # 是否为 WSL 环境
-  bootMode = "uefi";                # 物理机默认 UEFI；传统 BIOS 改成 "bios"
-  grubDevice = null;                # 仅 BIOS 需要，填 /dev/disk/by-id/...
-  isNvidia = false;                 # 是否启用 NVIDIA
-  enableDae = false;                # 是否启用透明代理
-};
-```
-
-仓库现在默认使用 `grub`。UEFI 主机通常不需要额外的引导配置；传统 BIOS 主机需要同时设置 `bootMode = "bios"` 和 `grubDevice = "/dev/disk/by-id/..."`。
-
-如果 `/boot` 是独立文件系统，NixOS 的 `grub` 仍可能把内核复制到 `/boot`，最终能缓解多少容量压力取决于实际分区布局。
-
-编辑 `hosts/my-host/secrets.yaml` 填入真实密码和密钥，然后用 sops 加密：
-
-```bash
-sops -e --input-type yaml --output-type yaml \
-  hosts/my-host/secrets.yaml > /tmp/secrets.yaml
-mv /tmp/secrets.yaml hosts/my-host/secrets.yaml
+nixos-config-public.lib.mkHost {
+  hostname = "workstation";
+  system = "x86_64-linux";
+  user = {
+    name = "chikage";
+    fullName = "Chikage";
+    email = "user@example.com";
+    sshPublicKey = "ssh-ed25519 ...";
+  };
+  profiles = [ "workstation-base" ];
+  roles = [
+    "development"
+    "fullstack-development"
+    "ai-tooling"
+    "container-host"
+  ];
+}
 ```
 
 ### 4. 部署
@@ -114,117 +108,128 @@ chmod +x deploy.sh
 
 ### 5. 添加新主机
 
-1. 在 `hosts/` 下创建新目录
-2. 复制并修改主机配置
+1. 在 `flake.nix` 的 `nixosConfigurations` 中添加新的 `mkHost` 声明
+2. 创建对应的 `hosts/<hostname>/` 目录
 3. 在 `.sops.yaml` 中添加新主机密钥
-4. 在 `flake.nix` 的 `hostConfigs` 中添加条目
-5. 加密新主机的 `secrets.yaml`
+4. 加密新主机的 `secrets.yaml`
 
 ---
 
 ## 配置参考
 
-### NixOS 级 myConfig 选项
+### Profile / Role 设计规则
 
-在主机配置的 `myConfig` 块中设置，由公共模块库读取。
+- **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
+- OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
+- dae 是本机透明代理 feature：`platform.networking.transparentProxy`，不是代理网关 role。
 
-| 选项               | 类型                 | 默认值   | 说明                                       |
-| ------------------ | -------------------- | -------- | ------------------------------------------ |
-| `username`         | string               | **必填** | 主用户名                                   |
-| `userFullName`     | string               | **必填** | 用户全名（用于 Git 等）                    |
-| `userEmail`        | string               | **必填** | 用户邮箱                                   |
-| `sshPublicKey`     | string               | **必填** | SSH 公钥                                   |
-| `nixMaxJobs`       | int \| "auto"        | `"auto"` | Nix 最大并行构建数                         |
-| `isWSL`            | bool                 | `false`  | 是否为 WSL 环境                            |
-| `bootMode`         | "uefi" \\| "bios" | `"uefi"` | 非 WSL 主机的 GRUB 启动模式               |
-| `grubDevice`       | nullOr string        | `null`   | 传统 BIOS 模式下 GRUB 安装目标磁盘        |
-| `isNvidia`         | bool                 | `false`  | 启用 NVIDIA 闭源驱动 + CUDA                |
-| `enableDae`        | bool                 | `false`  | 启用 dae (eBPF) 透明代理                   |
-| `extraHosts`       | attrsOf (listOf str) | `{ }`    | 额外的 `/etc/hosts` 映射                   |
-| `daeConfigFile`    | nullOr string        | `null`   | dae 完整配置文件路径（推荐通过 sops 提供） |
-| `opencodeSettings` | attrs                | `{ }`    | OpenCode 自定义配置                        |
+### Profile 列表
 
-### Home Manager 级 myConfig 选项
+| Profile              | 描述                                          |
+| -------------------- | --------------------------------------------- |
+| `wsl-base`           | WSL 环境基础配置                              |
+| `workstation-base`   | 物理工作站基础配置                            |
+| `server-base`        | 服务器基础配置                                |
+| `generic-linux`      | 通用 Linux（默认，不附加特定形态约束）        |
 
-在 `home-manager.users.<name>.myConfig` 中设置。
+### Role 列表
 
-| 选项                 | 类型          | 默认值   | 说明                                                              |
-| -------------------- | ------------- | -------- | ----------------------------------------------------------------- |
-| `username`           | string        | **必填** | 主用户名                                                          |
-| `userFullName`       | string        | **必填** | 用户全名                                                          |
-| `userEmail`          | string        | **必填** | 用户邮箱                                                          |
-| `sshPublicKey`       | string        | **必填** | SSH 公钥                                                          |
-| `sshSopsSecrets`     | listOf string | `[ ]`    | 要加载到 ssh-agent 的 sops secret 名称                            |
-| `opencodeSettings`   | attrs         | `{ }`    | OpenCode 自定义配置                                               |
-| `opencodeConfigFile` | nullOr string | `null`   | 运行时生成的 OpenCode 配置路径（含机密，优先于 opencodeSettings） |
-| `enableSshAgent`     | bool          | `true`   | 自动启动 ssh-agent 并加载私钥                                     |
+| Role                    | 描述                                              |
+| ----------------------- | ------------------------------------------------- |
+| `development`           | 基础开发工具链                                    |
+| `fullstack-development` | 全栈开发工具（前端、后端、数据库客户端等）        |
+| `ai-tooling`            | AI 研发工具（Python、Jupyter、CUDA 工具集）       |
+| `container-host`        | Podman 容器宿主                                    |
+| `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
+| `remote-admin`          | Cockpit 远程管理面板                              |
+
+### platform 选项参考
+
+`mkHost` 会将 host 声明规范化为 `config.platform.*`，供模块内部读取。
+
+| 选项路径                                        | 类型                     | 默认值      | 说明                                 |
+| ----------------------------------------------- | ------------------------ | ----------- | ------------------------------------ |
+| `platform.profiles`                             | listOf string            | `[ ]`       | 启用的 profile 名称列表              |
+| `platform.roles`                                | listOf string            | `[ ]`       | 启用的 role 名称列表                 |
+| `platform.user.name`                            | string                   | **必填**    | 主用户名                             |
+| `platform.user.fullName`                        | string                   | **必填**    | 用户全名                             |
+| `platform.user.email`                           | string                   | **必填**    | 用户邮箱                             |
+| `platform.user.sshPublicKey`                    | string                   | **必填**    | SSH 公钥                             |
+| `platform.stateVersion`                         | string                   | `"25.11"`   | NixOS / HM stateVersion              |
+| `platform.machine.class`                        | enum                     | `"generic"` | 机器形态：wsl / workstation / server |
+| `platform.machine.wsl.enable`                   | bool                     | `false`     | 是否启用 WSL 约束                    |
+| `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | GRUB 启动模式                         |
+| `platform.machine.boot.grubDevice`              | nullOr string            | `null`      | BIOS 模式下 GRUB 安装磁盘            |
+| `platform.machine.nvidia.enable`                | bool                     | `false`     | 启用 NVIDIA/CUDA                     |
+| `platform.nix.maxJobs`                          | int \| "auto"            | `"auto"`    | Nix 最大并行构建数                    |
+| `platform.networking.transparentProxy.enable`   | bool                     | `false`     | 启用 dae 透明代理                    |
+| `platform.networking.transparentProxy.configFile` | nullOr string          | `null`      | dae 配置文件路径（推荐通过 sops）    |
+| `platform.networking.extraHosts`                | attrsOf (listOf str)     | `{ }`       | 额外的 `/etc/hosts` 映射             |
+| `platform.services.openssh.enable`              | bool                     | `false`     | 启用 OpenSSH                         |
+| `platform.services.cockpit.enable`              | bool                     | `false`     | 启用 Cockpit                         |
+| `platform.services.cockpit.extraOrigins`        | listOf string            | `[ ]`       | 额外 Cockpit origin                  |
+| `platform.containers.podman.enable`             | bool                     | `false`     | 启用 Podman + Docker CLI 兼容层      |
+| `platform.home.opencode.enable`                 | bool                     | `false`     | 启用 OpenCode AI 助手                |
+| `platform.home.opencode.settings`               | attrs                    | `{ }`       | OpenCode 自定义配置                  |
+| `platform.home.opencode.configFile`             | nullOr string            | `null`      | 运行时生成的配置文件路径             |
+| `platform.home.sshAgent.enable`                 | bool                     | `true`      | 自动启动 ssh-agent                   |
+| `platform.home.sshAgent.sopsSecrets`            | listOf string            | `[ ]`       | 加载到 ssh-agent 的 sops secret      |
+| `platform.packages.system.extra`                | listOf package           | `[ ]`       | 额外系统包                           |
+| `platform.packages.home.extra`                  | listOf package           | `[ ]`       | 额外用户包                           |
 
 ---
 
 ## 高级用法
 
-### 物理机 + NVIDIA + dae 透明代理
+### 物理机 + NVIDIA + 透明代理
 
 ```nix
-let
-  isWSL = false;
-  isNvidia = true;
-in
-{
-  imports = [ ./hardware-configuration.nix ];
-
-  myConfig = lib.mkMerge [
-    {
-      isWSL = isWSL;
-      bootMode = "uefi";
-      isNvidia = isNvidia;
-      enableDae = true;
-      # ...其他必填字段
-    }
-    (lib.mkIf config.myConfig.enableDae {
-      daeConfigFile = config.sops.secrets."dae/config".path;
-    })
+public.lib.mkHost {
+  hostname = "gpu-workstation";
+  system = "x86_64-linux";
+  user = commonUser;
+  profiles = [ "workstation-base" ];
+  roles = [
+    "development"
+    "ai-tooling"
+    "ai-accelerated"
+    "container-host"
   ];
-
-  sops.secrets = lib.mkMerge [
-    { /* 基础 secrets */ }
-    (lib.mkIf config.myConfig.enableDae {
+  machine = {
+    boot.mode = "uefi";
+    nvidia.enable = true;
+  };
+  networking.transparentProxy.enable = true;
+  home.opencode.enable = true;
+  secrets.sops = {
+    enable = true;
+    defaultFile = ./hosts/gpu-workstation/secrets.yaml;
+    ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
+    secrets = {
       "dae/config" = { };
-    })
-  ];
+      "opencode/apiKey" = { };
+      "ssh_private_key" = {
+        owner = commonUser.name;
+        mode = "0400";
+      };
+    };
+  };
+  hardwareModules = [ ./hosts/gpu-workstation/hardware-configuration.nix ];
+  extraModules = [ ./hosts/gpu-workstation ];
 }
 ```
 
-> **注意：** `daeConfigFile` 包含节点和订阅信息，务必通过 sops 管理，不要将明文写入 nix 文件。
-
-如果机器是传统 BIOS，再额外设置 `bootMode = "bios";` 和 `grubDevice = "/dev/disk/by-id/...";`。
-
-### 多主机管理
-
-在 `flake.nix` 中添加多台主机：
-
-```nix
-hostConfigs = {
-  "workstation" = ./hosts/workstation;
-  "laptop" = ./hosts/laptop;
-  "server" = ./hosts/server;
-};
-```
-
-使用 `./deploy.sh workstation` 或 `./deploy.sh laptop` 部署到不同主机。
-
 ### 自定义模块组合
 
-可以按需导入单独的模块，而非使用完整的 `default` 聚合：
+可以在 `extraModules` 中添加你自己的模块：
 
 ```nix
-modules = [
-  nixos-config-public.nixosModules.base
-  nixos-config-public.nixosModules.network
-  nixos-config-public.nixosModules.users
-  nixos-config-public.nixosModules.packages
-  # 不需要 nvidia、dae 等就不导入
-];
+public.lib.mkHost {
+  hostname = "custom";
+  profiles = [ "generic-linux" ];
+  user = commonUser;
+  extraModules = [ ./my-custom-module.nix ];
+}
 ```
 
 ---
@@ -235,31 +240,31 @@ modules = [
 nixos-config/
 ├── flake.nix              # Flake 入口，导出模块和 overlays
 ├── example/               # 私有仓库模板
-│   └── my-host/           # 完整可运行示例
+│   └── my-host/           # 完整可运行示例（wsl-dev / server / workstation）
 ├── lib/
-│   ├── options.nix        # NixOS myConfig options 定义
-│   └── home-options.nix   # Home Manager myConfig options 定义
+│   └── platform/          # mkHost、mkSystem、mkHome 实现
 ├── modules/
 │   ├── nixos/
 │   │   ├── default.nix    # 系统模块聚合
-│   │   ├── base.nix       # 基础配置 (Nix, 内核, swap)
-│   │   ├── network.nix    # 网络配置
-│   │   ├── users.nix      # 用户管理
-│   │   ├── packages.nix   # 系统包
-│   │   ├── virtualisation.nix  # Podman
-│   │   ├── hardware/
-│   │   │   └── nvidia.nix # NVIDIA/CUDA 支持
-│   │   └── services/
-│   │       ├── dae.nix    # 透明代理
-│   │       └── openssh.nix
-│   └── home/
-│       ├── default.nix    # Home Manager 模块聚合
-│       ├── base.nix
-│       ├── git.nix        # Git 配置 + SSH 签名
-│       ├── shell.nix      # Zsh + Starship
-│       ├── cli-tools.nix  # 现代 CLI 工具
-│       ├── opencode.nix   # OpenCode AI 助手
-│       └── packages.nix   # 用户包
+│   │   ├── core/          # 基础系统配置
+│   │   ├── boot/          # 启动引导
+│   │   ├── users/         # 用户管理
+│   │   ├── networking/    # 网络 + 透明代理
+│   │   ├── hardware/      # NVIDIA/CUDA
+│   │   ├── services/      # SSH、Cockpit
+│   │   ├── containers/    # Podman
+│   │   └── packages/      # 系统包
+│   ├── home/
+│   │   ├── default.nix    # Home Manager 模块聚合
+│   │   ├── core/          # 基础用户配置
+│   │   ├── git/           # Git + SSH 签名
+│   │   ├── shell/         # Zsh + Starship
+│   │   ├── development/   # CLI 工具 + 包管理
+│   │   └── opencode/      # OpenCode AI 助手
+│   └── shared/
+│       └── options.nix    # platform 选项定义
+├── profiles/              # 机器形态定义
+├── roles/                 # 功能角色定义
 └── pkgs/
     └── v2ray-rules-dat/   # GeoIP/GeoSite 规则包
 ```
@@ -270,29 +275,43 @@ nixos-config/
 
 ### nixosModules
 
-| 模块             | 描述                                                          |
-| ---------------- | ------------------------------------------------------------- |
-| `default`        | 完整 NixOS 模块聚合（推荐直接使用）                           |
-| `base`           | 基础系统配置                                                  |
-| `network`        | 网络配置                                                      |
-| `users`          | 用户管理                                                      |
-| `nvidia`         | NVIDIA/CUDA 支持                                              |
-| `dae`            | dae 透明代理                                                  |
-| `openssh`        | SSH 服务                                                      |
-| `virtualisation` | Podman（兼容 Docker CLI，未限定镜像名默认解析到 `docker.io`） |
-| `packages`       | 系统包                                                        |
+| 模块             | 描述                                              |
+| ---------------- | ------------------------------------------------- |
+| `default`        | `platform` 别名，完整 NixOS 模块聚合              |
+| `platform`       | 完整平台模块聚合                                   |
+| `profiles`       | profile 函数集合                                  |
+| `roles`          | role 函数集合                                     |
 
 ### homeModules
 
 | 模块      | 描述                       |
 | --------- | -------------------------- |
-| `default` | 完整 Home Manager 模块聚合 |
+| `default` | `platform` 别名            |
+| `platform`| 完整 Home Manager 模块聚合 |
+
+### lib
+
+| 函数      | 描述                                          |
+| --------- | --------------------------------------------- |
+| `mkHost`  | 从 host 声明创建 NixOS 配置（参数同 mkSystem）|
+| `mkSystem`| mkHost 别名                                   |
+| `mkHome`  | 创建 Home Manager 配置                        |
+| `profileNames` | 可用 profile 名称列表                   |
+| `roleNames`    | 可用 role 名称列表                       |
+| `resolveProfiles` | 按名称解析 profile 模块               |
+| `resolveRoles`    | 按名称解析 role 模块                   |
 
 ### overlays
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | v2ray-rules-dat、opencode 自定义包 |
+| `default` | v2ray-rules-dat、opencode 自定义包       |
+
+---
+
+## 从旧接口迁移
+
+如果你是从旧版接口迁移过来的用户，请参阅 `docs/` 下的迁移文档。
 
 ---
 
