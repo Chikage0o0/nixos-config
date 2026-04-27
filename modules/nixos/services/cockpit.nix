@@ -27,5 +27,11 @@ in
       # NixOS 上游默认只允许 localhost，会让用主机名或额外域名直连 9090 的浏览器握手失败。
       allowed-origins = cockpitExtraOrigins;
     };
+
+    # 长期开着页面时，真正涨内存的是 HTTPS worker，对应上游的 system-cockpithttps.slice。
+    systemd.slices."system-cockpithttps".sliceConfig = {
+      MemoryHigh = "192M";
+      MemoryMax = "256M";
+    };
   };
 }
