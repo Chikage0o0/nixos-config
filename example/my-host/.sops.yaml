@@ -17,12 +17,28 @@ keys:
   - &admin age1_REPLACE_WITH_YOUR_PUBLIC_KEY
 
   # 主机密钥（从目标主机的 SSH host ed25519 公钥派生）
-  - &my-host age1_REPLACE_WITH_HOST_PUBLIC_KEY
+  - &wsl-dev age1_REPLACE_WITH_HOST_PUBLIC_KEY
+  - &server age1_REPLACE_WITH_HOST_PUBLIC_KEY
+  - &workstation age1_REPLACE_WITH_HOST_PUBLIC_KEY
 
 creation_rules:
-  # my-host 主机的机密文件
-  - path_regex: hosts/my-host/secrets\.yaml$
+  # wsl-dev 主机的机密文件
+  - path_regex: hosts/wsl-dev/secrets\.yaml$
     key_groups:
       - age:
           - *admin
-          - *my-host
+          - *wsl-dev
+
+  # server 主机的机密文件
+  - path_regex: hosts/server/secrets\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *server
+
+  # workstation 主机的机密文件
+  - path_regex: hosts/workstation/secrets\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *workstation

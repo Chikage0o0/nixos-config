@@ -1,85 +1,102 @@
-# example/my-host/flake.nix
-# 私有配置仓库的 flake 入口
-# 用法：将此 example 目录复制为你的私有仓库根目录，然后按需修改
 {
   description = "My NixOS Private Configuration";
 
-  inputs = {
-    # 引入公共模块库（nixpkgs、home-manager、nixos-wsl、sops-nix 从此获取）
-    nixos-config-public = {
-      url = "github:Chikage0o0/nixos-config";
+  inputs.nixos-config-public.url = "github:Chikage0o0/nixos-config";
+
+  outputs = { nixos-config-public, ... }:
+  let
+    public = nixos-config-public;
+    commonUser = {
+      name = "your_username";
+      fullName = "Your Name";
+      email = "your@email.com";
+      sshPublicKey = "ssh-ed25519 AAAA... user@host";
     };
-  };
-
-  outputs =
-    {
-      self,
-      nixos-config-public,
-      ...
-    }@inputs:
-    let
-      nixpkgs = nixos-config-public.inputs.nixpkgs;
-      home-manager = nixos-config-public.inputs.home-manager;
-      nixos-wsl = nixos-config-public.inputs.nixos-wsl;
-      sops-nix = nixos-config-public.inputs.sops-nix;
-
-      # 主机配置映射表
-      # 键为主机名（需与 `hosts/` 下的目录名一致）
-      # 每台主机独立指定 system，支持 x86_64-linux 和 aarch64-linux
-      hostConfigs = {
-        "my-host" = {
-          path = ./hosts/my-host;
-          system = "x86_64-linux";
+  in
+  {
+    nixosConfigurations = {
+      wsl-dev = public.lib.mkHost {
+        hostname = "wsl-dev";
+        system = "x86_64-linux";
+        user = commonUser;
+        profiles = [ "wsl-base" ];
+        roles = [
+          "development"
+          "fullstack-development"
+          "ai-tooling"
+          "container-host"
+        ];
+        machine.wsl.enable = true;
+        home.opencode.enable = true;
+        secrets.sops = {
+          enable = true;
+          defaultFile = ./hosts/wsl-dev/secrets.yaml;
+          ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
+          secrets = {
+            "user/hashedPassword".neededForUsers = true;
+            "opencode/apiKey" = { };
+            "ssh_private_key" = {
+              owner = commonUser.name;
+              mode = "0400";
+            };
+          };
         };
+        extraModules = [ ./hosts/wsl-dev ];
       };
 
-      mkHost =
-        hostname:
-        { path, system }:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-
-          # 通过 specialArgs 将 hostname 和 inputs 传递给所有模块
-          # 这样主机配置中可以直接使用 inputs.nixos-wsl 等
-          specialArgs = {
-            inherit hostname;
-            inputs =
-              nixos-config-public.inputs
-              // inputs
-              // {
-                inherit nixos-config-public;
-              };
-          };
-
-          modules = [
-            # 允许安装非自由软件（如 NVIDIA 驱动）
-            { nixpkgs.config.allowUnfree = true; }
-
-            # 导入公共模块库（包含 myConfig 选项定义和所有系统模块）
-            nixos-config-public.nixosModules.default
-
-            # 导入 sops-nix（机密管理）
-            sops-nix.nixosModules.sops
-
-            # 导入主机特定配置
-            path
-
-            # Home Manager 集成
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = {
-                inherit hostname;
-                inputs = nixos-config-public.inputs // inputs;
-              };
-            }
-          ];
+      server = public.lib.mkHost {
+        hostname = "server";
+        system = "x86_64-linux";
+        user = commonUser;
+        profiles = [ "server-base" ];
+        roles = [
+          "remote-admin"
+          "container-host"
+        ];
+        machine.boot.mode = "uefi";
+        secrets.sops = {
+          enable = true;
+          defaultFile = ./hosts/server/secrets.yaml;
+          ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
+          secrets."user/hashedPassword".neededForUsers = true;
         };
-    in
-    {
-      # 为 hostConfigs 中的每台主机生成 nixosConfigurations
-      # 部署命令：sudo nixos-rebuild switch --flake .#my-host
-      nixosConfigurations = builtins.mapAttrs mkHost hostConfigs;
+        hardwareModules = [ ./hosts/server/hardware-configuration.nix ];
+        extraModules = [ ./hosts/server ];
+      };
+
+      workstation = public.lib.mkHost {
+        hostname = "workstation";
+        system = "x86_64-linux";
+        user = commonUser;
+        profiles = [ "workstation-base" ];
+        roles = [
+          "development"
+          "fullstack-development"
+          "ai-tooling"
+          "container-host"
+          "ai-accelerated"
+        ];
+        machine = {
+          boot.mode = "uefi";
+          nvidia.enable = true;
+        };
+        home.opencode.enable = true;
+        secrets.sops = {
+          enable = true;
+          defaultFile = ./hosts/workstation/secrets.yaml;
+          ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
+          secrets = {
+            "user/hashedPassword".neededForUsers = true;
+            "opencode/apiKey" = { };
+            "ssh_private_key" = {
+              owner = commonUser.name;
+              mode = "0400";
+            };
+          };
+        };
+        hardwareModules = [ ./hosts/workstation/hardware-configuration.nix ];
+        extraModules = [ ./hosts/workstation ];
+      };
     };
+  };
 }
