@@ -36,6 +36,8 @@ let
     postgresql
     just
     gnumake
+  ];
+  fullstackDesktopPackages = with pkgs; [
     vscode
     dbgate
   ];
@@ -50,6 +52,9 @@ in
   home.packages =
     basePackages
     ++ lib.optionals cfg.development.fullstack.enable fullstackPackages
+    ++ lib.optionals (
+      cfg.development.fullstack.enable && cfg.desktop.enable && cfg.desktop.apps.enable
+    ) fullstackDesktopPackages
     ++ lib.optionals cfg.containers.podman.enable containerPackages
     ++ cfg.packages.home.extra;
 }
