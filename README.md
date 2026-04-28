@@ -4,7 +4,7 @@
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-green.svg?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-基于 **NixOS Flakes** 的可复用模块库，为 **AI 研发**、**CUDA 加速**和**全栈开发**场景提供开箱即用的配置。
+基于 **NixOS Flakes** 的可复用模块库，为 **KDE Plasma 日常工作站**、**AI 研发**、**CUDA 加速**和**全栈开发**场景提供开箱即用的配置。
 
 ## 架构设计
 
@@ -120,7 +120,9 @@ chmod +x deploy.sh
 ### Profile / Role 设计规则
 
 - **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
+- `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
 - OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
+- VS Code 和 dbgate 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack 与桌面应用同时启用时安装。
 - dae 是本机透明代理 feature：`platform.networking.transparentProxy`，不是代理网关 role。
 
 ### Profile 列表
@@ -128,7 +130,7 @@ chmod +x deploy.sh
 | Profile              | 描述                                          |
 | -------------------- | --------------------------------------------- |
 | `wsl-base`           | WSL 环境基础配置                              |
-| `workstation-base`   | 物理工作站基础配置                            |
+| `workstation-base`   | 物理工作站基础配置，默认包含 KDE Plasma 日常桌面 |
 | `server-base`        | 服务器基础配置                                |
 | `generic-linux`      | 通用 Linux（默认，不附加特定形态约束）        |
 
@@ -137,8 +139,8 @@ chmod +x deploy.sh
 | Role                    | 描述                                              |
 | ----------------------- | ------------------------------------------------- |
 | `development`           | 基础开发工具链                                    |
-| `fullstack-development` | 全栈开发工具（前端、后端、数据库客户端等）        |
-| `ai-tooling`            | AI 研发工具（Python、Jupyter、CUDA 工具集）       |
+| `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code、dbgate） |
+| `ai-tooling`            | OpenCode AI 助手与开发 Shell 环境                 |
 | `container-host`        | Podman 容器宿主                                    |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
 | `remote-admin`          | Cockpit 远程管理面板                              |
@@ -161,6 +163,9 @@ chmod +x deploy.sh
 | `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | GRUB 启动模式                         |
 | `platform.machine.boot.grubDevice`              | nullOr string            | `null`      | BIOS 模式下 GRUB 安装磁盘            |
 | `platform.machine.nvidia.enable`                | bool                     | `false`     | 启用 NVIDIA/CUDA                     |
+| `platform.desktop.enable`                      | bool                     | `false`     | 启用图形桌面环境                    |
+| `platform.desktop.environment`                 | enum                     | `"plasma"` | 桌面环境；第一版只支持 Plasma       |
+| `platform.desktop.apps.enable`                 | bool                     | `false`     | 启用日常桌面应用集、字体、输入法与 Kitty/mpv 配置 |
 | `platform.nix.maxJobs`                          | int \| "auto"            | `"auto"`    | Nix 最大并行构建数                    |
 | `platform.networking.transparentProxy.enable`   | bool                     | `false`     | 启用 dae 透明代理                    |
 | `platform.networking.transparentProxy.configFile` | nullOr string          | `null`      | dae 配置文件路径（推荐通过 sops）    |
@@ -169,13 +174,31 @@ chmod +x deploy.sh
 | `platform.services.cockpit.enable`              | bool                     | `false`     | 启用 Cockpit                         |
 | `platform.services.cockpit.extraOrigins`        | listOf string            | `[ ]`       | 额外 Cockpit origin                  |
 | `platform.containers.podman.enable`             | bool                     | `false`     | 启用 Podman + Docker CLI 兼容层      |
+| `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
 | `platform.home.opencode.enable`                 | bool                     | `false`     | 启用 OpenCode AI 助手                |
 | `platform.home.opencode.settings`               | attrs                    | `{ }`       | OpenCode 自定义配置                  |
 | `platform.home.opencode.configFile`             | nullOr string            | `null`      | 运行时生成的配置文件路径             |
 | `platform.home.sshAgent.enable`                 | bool                     | `true`      | 自动启动 ssh-agent                   |
 | `platform.home.sshAgent.sopsSecrets`            | listOf string            | `[ ]`       | 加载到 ssh-agent 的 sops secret      |
+| `platform.development.fullstack.enable`        | bool                     | `false`     | 启用全栈开发工具包                  |
 | `platform.packages.system.extra`                | listOf package           | `[ ]`       | 额外系统包                           |
 | `platform.packages.home.extra`                  | listOf package           | `[ ]`       | 额外用户包                           |
+
+### workstation-base 默认桌面
+
+`workstation-base` 使用 profile 默认值启用：
+
+- `platform.desktop.enable = true`
+- `platform.desktop.environment = "plasma"`
+- `platform.desktop.apps.enable = true`
+
+默认桌面能力包括 KDE Plasma 6、SDDM Wayland、PipeWire、蓝牙、打印、Flatpak、KDE Connect 和 Fcitx5 拼音输入法。
+
+日常预置软件包括 Microsoft Edge、WPS Office CN、Gwenview、Spectacle、GIMP、Dolphin、Kate、Ark、KCalc、Bitwarden、Remmina、Plasma System Monitor、KDE Partition Manager、Filelight、Discover、AppImage 支持、Obsidian、Thunderbird、yt-dlp、ffmpeg-full 和 mediainfo。
+
+字体包含 Noto CJK、Noto Color Emoji、Sarasa Gothic、FiraCode Nerd Font、corefonts、vista-fonts 和 vista-fonts-chs，用于中文显示、emoji、编程字体候选和 WPS/Office 文档常见 Windows 字体兼容。
+
+基础桌面不包含聊天通讯软件、游戏/Wine/Proton 工具、同步云盘客户端、专用 PDF 查看器、IDE 或数据库 GUI。VS Code 与 dbgate 只在启用 `fullstack-development` role 且桌面应用同时启用时通过 Home Manager 安装。
 
 ---
 
@@ -241,15 +264,17 @@ nixos-config/
 ├── flake.nix              # Flake 入口，导出模块和 overlays
 ├── example/               # 私有仓库模板
 │   └── my-host/           # 完整可运行示例（wsl-dev / server / workstation）
+├── home/                  # 共享 Home 资源（如 starship.toml）
 ├── lib/
 │   └── platform/          # mkHost、mkSystem、mkHome 实现
 ├── modules/
 │   ├── nixos/
 │   │   ├── default.nix    # 系统模块聚合
-│   │   ├── core/          # 基础系统配置
+│   │   ├── core/          # 基础系统配置与断言
 │   │   ├── boot/          # 启动引导
 │   │   ├── users/         # 用户管理
 │   │   ├── networking/    # 网络 + 透明代理
+│   │   ├── desktop/       # KDE Plasma 桌面、输入法、字体、GUI 应用
 │   │   ├── hardware/      # NVIDIA/CUDA
 │   │   ├── services/      # SSH、Cockpit
 │   │   ├── containers/    # Podman
@@ -259,13 +284,15 @@ nixos-config/
 │   │   ├── core/          # 基础用户配置
 │   │   ├── git/           # Git + SSH 签名
 │   │   ├── shell/         # Zsh + Starship
-│   │   ├── development/   # CLI 工具 + 包管理
+│   │   ├── development/   # CLI 开发包与桌面 fullstack GUI 包门控
+│   │   ├── desktop/       # Kitty 与 mpv 桌面用户配置
 │   │   └── opencode/      # OpenCode AI 助手
 │   └── shared/
 │       └── options.nix    # platform 选项定义
 ├── profiles/              # 机器形态定义
 ├── roles/                 # 功能角色定义
 └── pkgs/
+    ├── opencode/          # OpenCode 自定义包
     └── v2ray-rules-dat/   # GeoIP/GeoSite 规则包
 ```
 
