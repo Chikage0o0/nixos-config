@@ -35,5 +35,9 @@ in
       assertion = !cfg.desktop.enable || cfg.desktop.environment == "plasma";
       message = "platform.desktop.environment 第一版只支持 plasma；请设置为 \"plasma\" 或关闭 platform.desktop.enable。";
     }
+    {
+      assertion = !cfg.desktop.apps.enable || cfg.desktop.enable;
+      message = "platform.desktop.apps.enable 需要 platform.desktop.enable = true；请同时设置 platform.desktop.enable = true 或关闭 platform.desktop.apps.enable。";
+    }
   ];
 }

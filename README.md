@@ -122,7 +122,7 @@ chmod +x deploy.sh
 - **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
 - OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
-- VS Code 和 dbgate 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack 与桌面应用同时启用时安装。
+- VS Code 和 dbgate 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
 - dae 是本机透明代理 feature：`platform.networking.transparentProxy`，不是代理网关 role。
 
 ### Profile 列表
@@ -198,7 +198,7 @@ chmod +x deploy.sh
 
 字体包含 Noto CJK、Noto Color Emoji、Sarasa Gothic、FiraCode Nerd Font、corefonts、vista-fonts 和 vista-fonts-chs，用于中文显示、emoji、编程字体候选和 WPS/Office 文档常见 Windows 字体兼容。
 
-基础桌面不包含聊天通讯软件、游戏/Wine/Proton 工具、同步云盘客户端、专用 PDF 查看器、IDE 或数据库 GUI。VS Code 与 dbgate 只在启用 `fullstack-development` role 且桌面应用同时启用时通过 Home Manager 安装。
+基础桌面不包含聊天通讯软件、游戏/Wine/Proton 工具、同步云盘客户端、专用 PDF 查看器、IDE 或数据库 GUI。VS Code 与 dbgate 只在启用 `fullstack-development` role 且 platform.desktop.enable 与 platform.desktop.apps.enable 同时启用时通过 Home Manager 安装。
 
 ---
 
