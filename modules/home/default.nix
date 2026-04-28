@@ -9,5 +9,6 @@
     ./development/packages.nix
     ./development/mirrors.nix
     ./opencode
+    ./desktop
   ];
 }
