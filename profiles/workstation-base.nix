@@ -7,6 +7,9 @@ in
 {
   platform.machine.class = profileDefault "workstation";
   platform.machine.wsl.enable = profileDefault false;
+  platform.desktop.enable = profileDefault true;
+  platform.desktop.environment = profileDefault "plasma";
+  platform.desktop.apps.enable = profileDefault true;
   platform.services.openssh.enable = profileDefault false;
   platform.services.cockpit.enable = profileDefault false;
 }

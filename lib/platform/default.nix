@@ -53,6 +53,7 @@ let
           profiles = host.profiles or [ "generic-linux" ];
           roles = host.roles or [ ];
           machine = host.machine or { };
+          desktop = host.desktop or { };
           networking = host.networking or { };
           services = host.services or { };
           home = host.home or { };
@@ -77,6 +78,7 @@ let
         (compactNulls {
           stateVersion = host.stateVersion or null;
           machine = host.machine or null;
+          desktop = host.desktop or null;
           nix = host.nix or null;
           networking = host.networking or null;
           services = host.services or null;

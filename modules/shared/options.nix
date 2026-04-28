@@ -100,6 +100,26 @@ in
       };
     };
 
+    desktop = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "是否启用图形桌面环境。";
+      };
+
+      environment = mkOption {
+        type = types.enum [ "plasma" ];
+        default = "plasma";
+        description = "桌面环境。第一版只支持 KDE Plasma。";
+      };
+
+      apps.enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "是否启用日常完整桌面应用集、字体、输入法、应用分发工具，以及 Kitty/mpv Home Manager 配置。";
+      };
+    };
+
     nix.maxJobs = mkOption {
       type = types.either types.int (types.enum [ "auto" ]);
       default = "auto";
