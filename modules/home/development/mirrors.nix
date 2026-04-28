@@ -23,9 +23,9 @@ lib.mkIf (!cfg.machine.overseas) {
 
   home.file.".cargo/config.toml".text = ''
     [source.crates-io]
-    replace-with = "ustc"
+    replace-with = "rsproxy"
 
-    [source.ustc]
-    registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
+    [source.rsproxy]
+    registry = "sparse+https://rsproxy.cn/index/"
   '';
 }
