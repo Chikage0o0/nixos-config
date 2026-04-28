@@ -27,5 +27,13 @@ in
       assertion = !(cfg.machine.wsl.enable && cfg.machine.nvidia.enable);
       message = "WSL profile 不能启用 platform.machine.nvidia.enable；GPU/CUDA 能力只能用于非 WSL Linux 主机。";
     }
+    {
+      assertion = !(cfg.machine.wsl.enable && cfg.desktop.enable);
+      message = "WSL 主机不能启用 platform.desktop.enable；请关闭桌面配置或改用非 WSL profile。";
+    }
+    {
+      assertion = !cfg.desktop.enable || cfg.desktop.environment == "plasma";
+      message = "platform.desktop.environment 第一版只支持 plasma；请设置为 \"plasma\" 或关闭 platform.desktop.enable。";
+    }
   ];
 }

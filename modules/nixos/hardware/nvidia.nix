@@ -6,10 +6,7 @@
 }:
 {
   config = lib.mkIf config.platform.machine.nvidia.enable {
-    services.xserver = {
-      enable = false;
-      videoDrivers = [ "nvidia" ];
-    };
+    services.xserver.videoDrivers = [ "nvidia" ];
 
     hardware.graphics = {
       enable = true;
