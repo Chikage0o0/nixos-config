@@ -36,6 +36,8 @@ let
     postgresql
     just
     gnumake
+    vscode
+    dbgate
   ];
   containerPackages = with pkgs; [
     podman-compose
