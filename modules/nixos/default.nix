@@ -13,5 +13,6 @@
     ./hardware/nvidia.nix
     ./containers/podman.nix
     ./packages/system.nix
+    ./desktop/plasma.nix
   ];
 }
