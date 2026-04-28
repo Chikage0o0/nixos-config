@@ -52,6 +52,12 @@ in
     };
 
     machine = {
+      overseas = mkOption {
+        type = types.bool;
+        default = false;
+        description = "是否为境外机器。启用后 nix 源与各语言包管理器均使用境外源。";
+      };
+
       class = mkOption {
         type = types.enum [
           "wsl"

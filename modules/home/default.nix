@@ -7,6 +7,7 @@
     ./shell
     ./development/cli-tools.nix
     ./development/packages.nix
+    ./development/mirrors.nix
     ./opencode
   ];
 }
