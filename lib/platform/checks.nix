@@ -14,7 +14,9 @@ let
     in
     pkgs.runCommand "${name}-eval"
       {
-        evaluatedSystem = config.config.system.build.toplevel.drvPath;
+        # Force full system evaluation without making the check derivation depend
+        # on the referenced .drv path being already valid in the local store.
+        evaluatedSystem = builtins.unsafeDiscardStringContext config.config.system.build.toplevel.drvPath;
       }
       ''
         touch $out
