@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  pkgsUnstable,
   ...
 }:
 let
@@ -41,7 +42,7 @@ let
     vscode
     dbgate
   ];
-  containerPackages = with pkgs; [
+  containerPackages = with pkgsUnstable; [
     podman-compose
     (writeShellScriptBin "docker-compose" ''
       exec ${podman-compose}/bin/podman-compose "$@"
