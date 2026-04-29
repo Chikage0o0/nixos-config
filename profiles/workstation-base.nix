@@ -12,5 +12,7 @@ in
   platform.desktop.apps.enable = profileDefault true;
   platform.services.openssh.enable = profileDefault false;
   platform.services.cockpit.enable = profileDefault false;
+  platform.machine.powerProfiles.enable = profileDefault true;
+  platform.machine.brightness.enable = profileDefault true;
   time.hardwareClockInLocalTime = profileDefault true;
 }

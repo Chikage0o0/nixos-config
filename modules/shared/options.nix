@@ -98,6 +98,18 @@ in
         default = false;
         description = "是否启用 NVIDIA/CUDA 机器能力。";
       };
+
+      powerProfiles.enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "是否启用通用电源/性能档位切换。";
+      };
+
+      brightness.enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "是否安装内置屏幕与标准背光设备亮度控制工具。";
+      };
     };
 
     desktop = {

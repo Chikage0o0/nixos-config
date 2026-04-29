@@ -165,6 +165,8 @@ chmod +x deploy.sh
 | `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | GRUB 启动模式                         |
 | `platform.machine.boot.grubDevice`              | nullOr string            | `null`      | BIOS 模式下 GRUB 安装磁盘            |
 | `platform.machine.nvidia.enable`                | bool                     | `false`     | 启用 NVIDIA/CUDA                     |
+| `platform.machine.powerProfiles.enable`         | bool                     | `false`     | 启用通用电源/性能档位切换            |
+| `platform.machine.brightness.enable`            | bool                     | `false`     | 安装内置屏幕与标准背光设备亮度控制工具 |
 | `platform.desktop.enable`                      | bool                     | `false`     | 启用图形桌面环境                    |
 | `platform.desktop.environment`                 | enum                     | `"plasma"` | 桌面环境；第一版只支持 Plasma       |
 | `platform.desktop.apps.enable`                 | bool                     | `false`     | 启用日常桌面应用集、字体、输入法与 Kitty/mpv 配置 |
@@ -193,8 +195,12 @@ chmod +x deploy.sh
 - `platform.desktop.enable = true`
 - `platform.desktop.environment = "plasma"`
 - `platform.desktop.apps.enable = true`
+- `platform.machine.powerProfiles.enable = true`
+- `platform.machine.brightness.enable = true`
 
 默认桌面能力包括 KDE Plasma 6、SDDM Wayland、PipeWire、蓝牙、打印、Flatpak、KDE Connect 和 Fcitx5 拼音输入法。
+
+默认硬件体验包括通过 power-profiles-daemon 提供 KDE 可识别的电源/性能档位，以及通过 brightnessctl 控制笔记本内置屏幕和标准背光设备亮度；外接显示器 DDC/CI 调光不默认启用。
 
 日常预置软件包括 Microsoft Edge、WPS Office CN、Gwenview、Spectacle、GIMP、Dolphin、Kate、Ark、KCalc、Bitwarden、Remmina、Plasma System Monitor、KDE Partition Manager、Filelight、Discover、AppImage 支持、Obsidian、Thunderbird、yt-dlp、ffmpeg-full 和 mediainfo。
 
