@@ -29,7 +29,6 @@ in
         uosc
         thumbfast
         mpris
-        mpv-cheatsheet-ng
       ];
       config = {
         hwdec = "auto-safe";
