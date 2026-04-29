@@ -108,13 +108,13 @@ let
     };
 
   homeManagerBridgeModule =
-    host:
+    host: pkgsUnstable:
     { config, ... }:
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.extraSpecialArgs = {
-        inherit inputs;
+        inherit inputs pkgsUnstable;
         hostname = host.hostname;
       };
       home-manager.users.${config.platform.user.name} = {
@@ -138,6 +138,11 @@ rec {
       host = normalizeHost hostInput;
       profileModules = resolveProfiles host.profiles;
       roleModules = resolveRoles host.roles;
+      pkgsUnstable = import inputs.nixpkgs-unstable {
+        system = host.system;
+        config.allowUnfree = true;
+        overlays = [ self.overlays.default ];
+      };
       wslModules = lib.optionals (host.machine.wsl.enable or false) [
         inputs.nixos-wsl.nixosModules.default
       ];
@@ -145,7 +150,7 @@ rec {
     inputs.nixpkgs.lib.nixosSystem {
       system = host.system;
       specialArgs = {
-        inherit inputs;
+        inherit inputs pkgsUnstable;
         hostname = host.hostname;
       };
       modules = [
@@ -164,7 +169,7 @@ rec {
       ++ roleModules
       ++ host.hardwareModules
       ++ host.extraModules
-      ++ [ (homeManagerBridgeModule host) ];
+      ++ [ (homeManagerBridgeModule host pkgsUnstable) ];
     };
 
   mkSystem = mkHost;

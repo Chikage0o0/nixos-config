@@ -1,10 +1,12 @@
 # NixOS Config Library
 
-[![NixOS](https://img.shields.io/badge/NixOS-unstable-blue.svg?logo=nixos&logoColor=white)](https://nixos.org)
+[![NixOS](https://img.shields.io/badge/NixOS-stable-blue.svg?logo=nixos&logoColor=white)](https://nixos.org)
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-green.svg?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 基于 **NixOS Flakes** 的可复用模块库，为 **KDE Plasma 日常工作站**、**AI 研发**、**CUDA 加速**和**全栈开发**场景提供开箱即用的配置。
+
+仓库默认以当前 stable `nixpkgs` 作为系统基线；对确实需要追新的少数应用，模块可显式使用 `pkgsUnstable`。当前 `remote-admin` 中的 Cockpit 就采用这种 selective unstable 策略，以便在不牵动整套系统频道的前提下追踪新版。
 
 ## 架构设计
 
@@ -143,7 +145,7 @@ chmod +x deploy.sh
 | `ai-tooling`            | OpenCode AI 助手与开发 Shell 环境                 |
 | `container-host`        | Podman 容器宿主                                    |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
-| `remote-admin`          | Cockpit 远程管理面板                              |
+| `remote-admin`          | Cockpit 远程管理面板（Cockpit 走 selective unstable 以便追新） |
 
 ### platform 选项参考
 
