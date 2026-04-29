@@ -20,6 +20,7 @@ in
       "flakes"
     ];
     max-jobs = cfg.nix.maxJobs;
+    builders-use-substitutes = true;
     download-attempts = 2;
     connect-timeout = 5;
     substituters =
