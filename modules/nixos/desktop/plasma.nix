@@ -80,6 +80,20 @@ in
 
         services.printing.enable = true;
 
+        i18n.defaultLocale = "zh_CN.UTF-8";
+
+        i18n.inputMethod = {
+          enable = true;
+          type = "fcitx5";
+          fcitx5.waylandFrontend = true;
+          fcitx5.addons = with pkgs; [
+            fcitx5-gtk
+            kdePackages.fcitx5-qt
+            kdePackages.fcitx5-chinese-addons
+            kdePackages.fcitx5-configtool
+          ];
+        };
+
         environment.plasma6.excludePackages = with pkgs; [
           kdePackages.konsole
           kdePackages.okular
@@ -92,17 +106,9 @@ in
         services.flatpak.enable = true;
         programs.kdeconnect.enable = true;
 
-        i18n.inputMethod = {
-          enable = true;
-          type = "fcitx5";
-          fcitx5.addons = with pkgs; [
-            kdePackages.fcitx5-chinese-addons
-            kdePackages.fcitx5-configtool
-          ];
-        };
-
         environment.systemPackages = desktopPackages;
         fonts.packages = desktopFonts;
+        fonts.fontconfig.defaultFonts.monospace = [ "Sarasa Mono SC" ];
       })
     ]
   );

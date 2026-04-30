@@ -17,6 +17,7 @@ in
         size = 12;
       };
       settings = {
+        font_family = "FiraCode Nerd Font,Sarasa Mono SC";
         confirm_os_window_close = 0;
         enable_audio_bell = false;
         scrollback_lines = 10000;
