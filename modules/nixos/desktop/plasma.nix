@@ -80,7 +80,7 @@ in
 
         services.printing.enable = true;
 
-        i18n.defaultLocale = "zh_CN.UTF-8";
+        i18n.defaultLocale = "en_US.UTF-8";
 
         i18n.inputMethod = {
           enable = true;
