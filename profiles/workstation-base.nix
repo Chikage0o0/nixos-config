@@ -5,6 +5,8 @@ let
   profileDefault = lib.mkOverride 1200;
 in
 {
+  imports = [ ../modules/nixos/hardware/workstation.nix ];
+
   platform.machine.class = profileDefault "workstation";
   platform.machine.wsl.enable = profileDefault false;
   platform.desktop.enable = profileDefault true;
