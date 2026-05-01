@@ -19,7 +19,6 @@ let
     kdePackages.kcalc
     p7zip
     unrar
-    bitwarden-desktop
     remmina
     kdePackages.plasma-systemmonitor
     kdePackages.partitionmanager
@@ -134,7 +133,10 @@ in
         services.flatpak.enable = true;
         programs.kdeconnect.enable = true;
 
-        environment.systemPackages = desktopPackages;
+        environment.systemPackages = desktopPackages ++ [
+          pkgs.papirus-icon-theme
+          pkgs.bibata-cursors
+        ];
         fonts.packages = desktopFonts;
         fonts.fontconfig.defaultFonts.monospace = [ "Sarasa Mono SC" ];
       })
