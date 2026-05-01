@@ -9,6 +9,11 @@ let
 in
 {
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {
+    xdg.configFile."ksmserverrc".text = ''
+      [General]
+      loginMode=emptySession
+    '';
+
     programs.kitty = {
       enable = true;
       theme = "OneDark-Pro";
