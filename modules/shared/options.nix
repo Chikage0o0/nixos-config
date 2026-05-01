@@ -25,6 +25,18 @@ in
       description = "NixOS 与 Home Manager 的 stateVersion。";
     };
 
+    timezone = mkOption {
+      type = types.str;
+      default = "Asia/Shanghai";
+      description = "系统时区。";
+    };
+
+    locale = mkOption {
+      type = types.str;
+      default = "zh_CN.UTF-8";
+      description = "系统语言/区域设置。";
+    };
+
     user = {
       name = mkOption {
         type = types.str;

@@ -80,18 +80,18 @@ in
 
         services.printing.enable = true;
 
-        i18n.defaultLocale = "zh_CN.UTF-8";
+        i18n.defaultLocale = cfg.locale;
         i18n.extraLocales = [ "en_US.UTF-8/UTF-8" ];
         i18n.extraLocaleSettings = {
-          LC_ADDRESS = "zh_CN.UTF-8";
-          LC_IDENTIFICATION = "zh_CN.UTF-8";
-          LC_MEASUREMENT = "zh_CN.UTF-8";
-          LC_MONETARY = "zh_CN.UTF-8";
-          LC_NAME = "zh_CN.UTF-8";
-          LC_NUMERIC = "zh_CN.UTF-8";
-          LC_PAPER = "zh_CN.UTF-8";
-          LC_TELEPHONE = "zh_CN.UTF-8";
-          LC_TIME = "zh_CN.UTF-8";
+          LC_ADDRESS = cfg.locale;
+          LC_IDENTIFICATION = cfg.locale;
+          LC_MEASUREMENT = cfg.locale;
+          LC_MONETARY = cfg.locale;
+          LC_NAME = cfg.locale;
+          LC_NUMERIC = cfg.locale;
+          LC_PAPER = cfg.locale;
+          LC_TELEPHONE = cfg.locale;
+          LC_TIME = cfg.locale;
         };
 
         i18n.inputMethod = {

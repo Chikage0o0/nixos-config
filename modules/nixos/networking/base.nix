@@ -9,7 +9,7 @@ in
 {
   networking.networkmanager.enable = lib.mkDefault (!cfg.machine.wsl.enable);
   networking.hosts = cfg.networking.extraHosts;
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = cfg.timezone;
 
   networking.firewall = {
     enable = lib.mkDefault (!cfg.machine.wsl.enable);
