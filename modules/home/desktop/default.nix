@@ -9,9 +9,8 @@ let
 in
 {
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {
-    xdg.configFile."ksmserverrc".text = ''
-      [General]
-      loginMode=emptySession
+    home.activation.setKsmserverLoginMode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file ksmserverrc --group General --key loginMode emptySession
     '';
 
     programs.kitty = {
@@ -29,6 +28,7 @@ in
         scrollback_lines = 10000;
         background_opacity = 0.85;
         background_blur = 10;
+        mouse_map = "ctrl+left click ungrabbed mouse_handle_click selection link prompt";
       };
     };
 

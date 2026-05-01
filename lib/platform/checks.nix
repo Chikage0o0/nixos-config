@@ -22,6 +22,38 @@ let
         touch $out
       '';
 
+  mkKsmserverLoginModeCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      homeCfg = config.config.home-manager.users.${host.user.name};
+      activationData = homeCfg.home.activation.setKsmserverLoginMode.data or "";
+      managesWholeFile = builtins.hasAttr "ksmserverrc" homeCfg.xdg.configFile;
+      usesKwriteconfig = lib.hasInfix "kwriteconfig6" activationData;
+      targetsKsmserver = lib.hasInfix "--file ksmserverrc" activationData;
+      writesLoginMode =
+        lib.hasInfix "--group General" activationData
+        && lib.hasInfix "--key loginMode" activationData
+        && lib.hasInfix "emptySession" activationData;
+      passes = !managesWholeFile && usesKwriteconfig && targetsKsmserver && writesLoginMode;
+    in
+    pkgs.runCommand "${name}-ksmserver-login-mode"
+      {
+        inherit activationData;
+        pass = if passes then "1" else "0";
+        staticKsmserverFile = if managesWholeFile then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected Plasma session restore policy to be written via kwriteconfig6 activation." >&2
+          echo "staticKsmserverFile=$staticKsmserverFile" >&2
+          echo "$activationData" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   user = {
     name = "example";
     fullName = "Example User";
@@ -106,5 +138,11 @@ let
   };
 in
 lib.genAttrs systems (
-  system: lib.mapAttrs' (name: host: lib.nameValuePair name (mkEvalCheck system name host)) hosts
+  system:
+  lib.mapAttrs' (name: host: lib.nameValuePair name (mkEvalCheck system name host)) hosts
+  // {
+    example-workstation-ksmserver-login-mode =
+      mkKsmserverLoginModeCheck system "example-workstation"
+        hosts.example-workstation;
+  }
 )

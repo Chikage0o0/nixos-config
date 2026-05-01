@@ -125,7 +125,6 @@ chmod +x deploy.sh
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
 - OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
 - VS Code 和 dbgate 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
-- dae 是本机透明代理 feature：`platform.networking.transparentProxy`，不是代理网关 role。
 
 ### Profile 列表
 
@@ -171,8 +170,6 @@ chmod +x deploy.sh
 | `platform.desktop.environment`                 | enum                     | `"plasma"` | 桌面环境；第一版只支持 Plasma       |
 | `platform.desktop.apps.enable`                 | bool                     | `false`     | 启用日常桌面应用集、字体、输入法与 Kitty/mpv 配置 |
 | `platform.nix.maxJobs`                          | int \| "auto"            | `"auto"`    | Nix 最大并行构建数                    |
-| `platform.networking.transparentProxy.enable`   | bool                     | `false`     | 启用 dae 透明代理                    |
-| `platform.networking.transparentProxy.configFile` | nullOr string          | `null`      | dae 配置文件路径（推荐通过 sops）    |
 | `platform.networking.extraHosts`                | attrsOf (listOf str)     | `{ }`       | 额外的 `/etc/hosts` 映射             |
 | `platform.services.openssh.enable`              | bool                     | `false`     | 启用 OpenSSH                         |
 | `platform.services.cockpit.enable`              | bool                     | `false`     | 启用 Cockpit                         |
@@ -212,7 +209,7 @@ chmod +x deploy.sh
 
 ## 高级用法
 
-### 物理机 + NVIDIA + 透明代理
+### 物理机 + NVIDIA
 
 ```nix
 public.lib.mkHost {
@@ -230,14 +227,12 @@ public.lib.mkHost {
     boot.mode = "uefi";
     nvidia.enable = true;
   };
-  networking.transparentProxy.enable = true;
   home.opencode.enable = true;
   secrets.sops = {
     enable = true;
     defaultFile = ./hosts/gpu-workstation/secrets.yaml;
     ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
     secrets = {
-      "dae/config" = { };
       "opencode/apiKey" = { };
       "ssh_private_key" = {
         owner = commonUser.name;
@@ -281,7 +276,7 @@ nixos-config/
 │   │   ├── core/          # 基础系统配置与断言
 │   │   ├── boot/          # 启动引导
 │   │   ├── users/         # 用户管理
-│   │   ├── networking/    # 网络 + 透明代理
+│   │   ├── networking/    # 网络配置
 │   │   ├── desktop/       # KDE Plasma 桌面、输入法、字体、GUI 应用
 │   │   ├── hardware/      # NVIDIA/CUDA
 │   │   ├── services/      # SSH、Cockpit
@@ -301,7 +296,7 @@ nixos-config/
 ├── roles/                 # 功能角色定义
 └── pkgs/
     ├── opencode/          # OpenCode 自定义包
-    └── v2ray-rules-dat/   # GeoIP/GeoSite 规则包
+
 ```
 
 ---
@@ -340,7 +335,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | v2ray-rules-dat、opencode 自定义包       |
+| `default` | opencode 自定义包                   |
 
 ---
 

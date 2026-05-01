@@ -145,25 +145,6 @@ in
         description = "额外的 /etc/hosts 映射。";
       };
 
-      transparentProxy = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = "是否启用本机透明代理。";
-        };
-
-        backend = mkOption {
-          type = types.enum [ "dae" ];
-          default = "dae";
-          description = "透明代理 backend。第一版只支持 dae。";
-        };
-
-        configFile = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "透明代理运行时配置文件路径，推荐使用 /run/secrets/...。";
-        };
-      };
     };
 
     services = {

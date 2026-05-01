@@ -7,7 +7,6 @@
     ./boot/grub.nix
     ./users
     ./networking/base.nix
-    ./networking/transparent-proxy.nix
     ./services/cockpit.nix
     ./services/openssh.nix
     ./hardware/nvidia.nix

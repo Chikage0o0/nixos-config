@@ -22,66 +22,6 @@ gh_latest_tag() {
 }
 
 # ============================================================
-# v2ray-rules-dat
-# ============================================================
-update_v2ray_rules_dat() {
-    local nix_file="$SCRIPT_DIR/v2ray-rules-dat/default.nix"
-    if [ ! -f "$nix_file" ]; then
-        echo "[v2ray-rules-dat] 跳过: 找不到 $nix_file"
-        return 0
-    fi
-
-    echo "[v2ray-rules-dat] 正在获取最新版本信息..."
-    local latest_version
-    latest_version=$(gh_latest_tag "Loyalsoldier/v2ray-rules-dat")
-
-    if [ -z "$latest_version" ]; then
-        echo "[v2ray-rules-dat] 错误: 无法获取最新版本号"
-        return 0
-    fi
-
-    local current_version
-    current_version=$(grep -oP 'version = "\K[^"]+' "$nix_file" || true)
-
-    if [ "$latest_version" = "$current_version" ]; then
-        echo "[v2ray-rules-dat] 版本已是最新 ($current_version)，跳过"
-        return 0
-    fi
-
-    echo "[v2ray-rules-dat] $current_version -> $latest_version"
-
-    local tmpdir
-    tmpdir=$(mktemp -d)
-
-    echo "[v2ray-rules-dat] 正在下载 checksums ..."
-    gh release download "$latest_version" \
-        --repo Loyalsoldier/v2ray-rules-dat \
-        --pattern 'geoip.dat.sha256sum' \
-        --dir "$tmpdir" --clobber &>/dev/null || true
-    gh release download "$latest_version" \
-        --repo Loyalsoldier/v2ray-rules-dat \
-        --pattern 'geosite.dat.sha256sum' \
-        --dir "$tmpdir" --clobber &>/dev/null || true
-
-    local geoip_hash geosite_hash
-    geoip_hash=$(awk '{print $1}' "$tmpdir/geoip.dat.sha256sum" 2>/dev/null || true)
-    geosite_hash=$(awk '{print $1}' "$tmpdir/geosite.dat.sha256sum" 2>/dev/null || true)
-
-    rm -rf "$tmpdir"
-
-    if [ -z "$geoip_hash" ] || [ -z "$geosite_hash" ]; then
-        echo "[v2ray-rules-dat] 错误: 无法获取 hash"
-        return 0
-    fi
-
-    sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
-    sed -i "/geoip = fetchurl {/,/};/ s|sha256 = \"[^\"]*\";|sha256 = \"$geoip_hash\";|" "$nix_file"
-    sed -i "/geosite = fetchurl {/,/};/ s|sha256 = \"[^\"]*\";|sha256 = \"$geosite_hash\";|" "$nix_file"
-
-    echo "[v2ray-rules-dat] ✓ 已更新到 $latest_version"
-}
-
-# ============================================================
 # opencode
 # ============================================================
 update_opencode() {
@@ -152,8 +92,6 @@ echo "  pkgs 一键更新工具"
 echo "=========================================="
 echo ""
 
-update_v2ray_rules_dat
-echo ""
 update_opencode
 
 echo ""
