@@ -80,7 +80,8 @@ in
 
         services.printing.enable = true;
 
-        i18n.defaultLocale = "en_US.UTF-8";
+        i18n.defaultLocale = "zh_CN.UTF-8";
+        i18n.extraLocales = [ "en_US.UTF-8/UTF-8" ];
 
         i18n.inputMethod = {
           enable = true;
@@ -91,7 +92,23 @@ in
             kdePackages.fcitx5-qt
             kdePackages.fcitx5-chinese-addons
             kdePackages.fcitx5-configtool
+            catppuccin-fcitx5
           ];
+          fcitx5.settings = {
+            addons = {
+              classicui.globalSection = {
+                Theme = "catppuccin-latte-sky";
+                DarkTheme = "catppuccin-mocha-sky";
+                UseDarkTheme = "True";
+                UseAccentColor = "True";
+                PerScreenDPI = "True";
+                VerticalCandidateList = "False";
+                WheelForPaging = "True";
+                Font = "Sarasa UI SC 12";
+                MenuFont = "Sarasa UI SC 10";
+              };
+            };
+          };
         };
 
         environment.plasma6.excludePackages = with pkgs; [

@@ -11,6 +11,7 @@ in
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {
     programs.kitty = {
       enable = true;
+      theme = "OneDark-Pro";
       font = {
         name = "FiraCode Nerd Font";
         package = pkgs.nerd-fonts.fira-code;
@@ -21,6 +22,8 @@ in
         confirm_os_window_close = 0;
         enable_audio_bell = false;
         scrollback_lines = 10000;
+        background_opacity = 0.85;
+        background_blur = 10;
       };
     };
 
