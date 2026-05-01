@@ -15,7 +15,7 @@ in
 
     programs.kitty = {
       enable = true;
-      theme = "OneDark-Pro";
+      themeFile = "OneDark-Pro";
       font = {
         name = "FiraCode Nerd Font";
         package = pkgs.nerd-fonts.fira-code;
