@@ -19,6 +19,7 @@ let
     kdePackages.kcalc
     kdePackages.kio
     kdePackages.kio-extras
+    kdePackages.kio-fuse
     kdePackages.kwallet
     kdePackages.kwalletmanager
     samba
