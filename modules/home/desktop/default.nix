@@ -12,6 +12,12 @@ in
     home.sessionVariables = {
       # 让 Electron 包装器在 Wayland 会话里自动附加 ozone 参数，避免 VSCode 回落到 XWayland。
       NIXOS_OZONE_WL = "1";
+      # WPS 等闭源桌面程序通常不会自动继承 fcitx5 前端，需要显式注入输入法桥接变量。
+      GTK_IM_MODULE = "fcitx";
+      QT_IM_MODULE = "fcitx";
+      XMODIFIERS = "@im=fcitx";
+      SDL_IM_MODULE = "fcitx";
+      INPUT_METHOD = "fcitx";
     };
 
     home.activation.setKsmserverLoginMode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
