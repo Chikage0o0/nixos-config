@@ -9,6 +9,8 @@
     ./networking/base.nix
     ./services/cockpit.nix
     ./services/openssh.nix
+    ./hardware/intel.nix
+    ./hardware/amd.nix
     ./hardware/nvidia.nix
     ./containers/podman.nix
     ./packages/system.nix

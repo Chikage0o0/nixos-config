@@ -75,11 +75,11 @@
             "fullstack-development"
             "ai-tooling"
             "container-host"
+            "gpu-nvidia"
             "ai-accelerated"
           ];
           machine = {
             boot.mode = "uefi";
-            nvidia.enable = true;
           };
           home.opencode.enable = true;
           secrets.sops = {

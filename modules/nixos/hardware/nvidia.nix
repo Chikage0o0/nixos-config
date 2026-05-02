@@ -5,15 +5,13 @@
   ...
 }:
 {
-  config = lib.mkIf config.platform.machine.nvidia.enable {
+  config = lib.mkIf config.platform.machine.gpu.nvidia.enable {
     services.xserver.videoDrivers = [ "nvidia" ];
 
     hardware.graphics = {
       enable = true;
       enable32Bit = true;
     };
-
-    hardware.nvidia-container-toolkit.enable = true;
 
     hardware.nvidia = {
       open = false;
@@ -26,9 +24,6 @@
       };
     };
 
-    environment.systemPackages = with pkgs; [
-      cudatoolkit
-      linuxPackages.nvidia_x11
-    ];
+    environment.systemPackages = [ pkgs.linuxPackages.nvidia_x11 ];
   };
 }

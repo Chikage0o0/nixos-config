@@ -66,7 +66,12 @@
         "aarch64-linux"
       ] (
         system:
-        nixpkgs.legacyPackages.${system}.extend self.overlays.default
+        let
+          pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
+        in
+        {
+          inherit (pkgs) opencode tabby;
+        }
       );
 
       # 导出格式化工具

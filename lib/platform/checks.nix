@@ -110,6 +110,89 @@ let
         touch $out
       '';
 
+  packageNames = packages: map lib.getName packages;
+
+  mkWorkstationGraphicsBaseCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      cfg = config.config;
+      passes =
+        cfg.hardware.enableRedistributableFirmware
+        && cfg.hardware.graphics.enable
+        && cfg.hardware.graphics.enable32Bit;
+    in
+    pkgs.runCommand "${name}-workstation-graphics-base"
+      {
+        pass = if passes then "1" else "0";
+        firmware = if cfg.hardware.enableRedistributableFirmware then "1" else "0";
+        graphics = if cfg.hardware.graphics.enable then "1" else "0";
+        graphics32 = if cfg.hardware.graphics.enable32Bit then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected workstation graphics base for ${name}." >&2
+          echo "firmware=$firmware" >&2
+          echo "graphics=$graphics" >&2
+          echo "graphics32=$graphics32" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
+  mkGpuLayeringCheck =
+    system: name: host: expected:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      cfg = config.config;
+      gpuCfg = cfg.platform.machine.gpu;
+      graphicsPkgNames = packageNames (cfg.hardware.graphics.extraPackages or [ ]);
+      systemPkgNames = packageNames (cfg.environment.systemPackages or [ ]);
+      videoDrivers = cfg.services.xserver.videoDrivers or [ ];
+      passes =
+        gpuCfg.intel.enable == expected.intel
+        && gpuCfg.amd.enable == expected.amd
+        && gpuCfg.nvidia.enable == expected.nvidia
+        && cfg.hardware.graphics.enable == expected.graphics
+        && cfg.hardware.graphics.enable32Bit == expected.graphics32
+        && (cfg.hardware.amdgpu.initrd.enable or false) == expected.amdgpuInitrd
+        && (cfg.hardware.amdgpu.opencl.enable or false) == expected.amdgpuOpencl
+        && (cfg.hardware.nvidia-container-toolkit.enable or false) == expected.nvidiaToolkit
+        && lib.all (pkg: lib.elem pkg graphicsPkgNames) expected.graphicsPackages
+        && lib.all (pkg: lib.elem pkg systemPkgNames) expected.systemPackages
+        && lib.all (driver: lib.elem driver videoDrivers) expected.videoDrivers;
+    in
+    pkgs.runCommand "${name}-gpu-layering"
+      {
+        pass = if passes then "1" else "0";
+        graphicsPackages = lib.concatStringsSep "," graphicsPkgNames;
+        systemPackages = lib.concatStringsSep "," systemPkgNames;
+        drivers = lib.concatStringsSep "," videoDrivers;
+        intel = if gpuCfg.intel.enable then "1" else "0";
+        amd = if gpuCfg.amd.enable then "1" else "0";
+        nvidia = if gpuCfg.nvidia.enable then "1" else "0";
+        graphics = if cfg.hardware.graphics.enable then "1" else "0";
+        graphics32 = if cfg.hardware.graphics.enable32Bit then "1" else "0";
+        amdgpuInitrd = if (cfg.hardware.amdgpu.initrd.enable or false) then "1" else "0";
+        amdgpuOpencl = if (cfg.hardware.amdgpu.opencl.enable or false) then "1" else "0";
+        nvidiaToolkit = if (cfg.hardware.nvidia-container-toolkit.enable or false) then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected GPU layering for ${name}." >&2
+          echo "intel=$intel amd=$amd nvidia=$nvidia" >&2
+          echo "graphics=$graphics graphics32=$graphics32" >&2
+          echo "amdgpuInitrd=$amdgpuInitrd amdgpuOpencl=$amdgpuOpencl nvidiaToolkit=$nvidiaToolkit" >&2
+          echo "graphicsPackages=$graphicsPackages" >&2
+          echo "systemPackages=$systemPackages" >&2
+          echo "drivers=$drivers" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   user = {
     name = "example";
     fullName = "Example User";
@@ -194,19 +277,48 @@ let
       };
     };
 
-    example-gpu-workstation = base // {
-      hostname = "example-gpu-workstation";
+    example-intel-workstation = base // {
+      hostname = "example-intel-workstation";
+      profiles = [ "workstation-base" ];
+      roles = [ "gpu-intel" ];
+      machine.boot.mode = "uefi";
+    };
+
+    example-amd-workstation = base // {
+      hostname = "example-amd-workstation";
+      profiles = [ "workstation-base" ];
+      roles = [ "gpu-amd" ];
+      machine.boot.mode = "uefi";
+    };
+
+    example-intel-ai-workstation = base // {
+      hostname = "example-intel-ai-workstation";
       profiles = [ "workstation-base" ];
       roles = [
-        "development"
-        "fullstack-development"
-        "ai-tooling"
-        "container-host"
+        "gpu-intel"
         "ai-accelerated"
       ];
       machine.boot.mode = "uefi";
-      machine.nvidia.enable = true;
-      home.opencode.enable = true;
+    };
+
+    example-amd-ai-workstation = base // {
+      hostname = "example-amd-ai-workstation";
+      profiles = [ "workstation-base" ];
+      roles = [
+        "gpu-amd"
+        "ai-accelerated"
+      ];
+      machine.boot.mode = "uefi";
+    };
+
+    example-gpu-workstation = base // {
+      hostname = "example-gpu-workstation";
+      roles = [
+        "gpu-nvidia"
+        "ai-accelerated"
+      ];
+      profiles = [ "workstation-base" ];
+      machine.boot.mode = "uefi";
     };
   };
 in
@@ -221,5 +333,100 @@ lib.genAttrs systems (
     example-workstation-ssh-agent-session =
       mkSshAgentSessionCheck system "example-workstation-ssh-agent"
         hosts.example-workstation-ssh-agent;
+
+    example-workstation-graphics-base =
+      mkWorkstationGraphicsBaseCheck system "example-workstation"
+        hosts.example-workstation;
+
+    example-intel-workstation-gpu =
+      mkGpuLayeringCheck system "example-intel-workstation" hosts.example-intel-workstation
+        {
+          intel = true;
+          amd = false;
+          nvidia = false;
+          graphics = true;
+          graphics32 = true;
+          amdgpuInitrd = false;
+          amdgpuOpencl = false;
+          nvidiaToolkit = false;
+          graphicsPackages = [
+            "intel-media-driver"
+            "intel-vaapi-driver"
+            "vpl-gpu-rt"
+          ];
+          systemPackages = [ ];
+          videoDrivers = [ ];
+        };
+
+    example-amd-workstation-gpu =
+      mkGpuLayeringCheck system "example-amd-workstation" hosts.example-amd-workstation
+        {
+          intel = false;
+          amd = true;
+          nvidia = false;
+          graphics = true;
+          graphics32 = true;
+          amdgpuInitrd = true;
+          amdgpuOpencl = false;
+          nvidiaToolkit = false;
+          graphicsPackages = [ ];
+          systemPackages = [ ];
+          videoDrivers = [ ];
+        };
+
+    example-intel-ai-workstation-gpu =
+      mkGpuLayeringCheck system "example-intel-ai-workstation" hosts.example-intel-ai-workstation
+        {
+          intel = true;
+          amd = false;
+          nvidia = false;
+          graphics = true;
+          graphics32 = true;
+          amdgpuInitrd = false;
+          amdgpuOpencl = false;
+          nvidiaToolkit = false;
+          graphicsPackages = [
+            "intel-media-driver"
+            "intel-vaapi-driver"
+            "vpl-gpu-rt"
+          ];
+          systemPackages = [
+            "openvino"
+            "intel-compute-runtime"
+          ];
+          videoDrivers = [ ];
+        };
+
+    example-amd-ai-workstation-gpu =
+      mkGpuLayeringCheck system "example-amd-ai-workstation" hosts.example-amd-ai-workstation
+        {
+          intel = false;
+          amd = true;
+          nvidia = false;
+          graphics = true;
+          graphics32 = true;
+          amdgpuInitrd = true;
+          amdgpuOpencl = true;
+          nvidiaToolkit = false;
+          graphicsPackages = [ ];
+          systemPackages = [ "rocminfo" ];
+          videoDrivers = [ ];
+        };
+
+    example-gpu-workstation-ai-layering =
+      mkGpuLayeringCheck system "example-gpu-workstation" hosts.example-gpu-workstation
+        {
+          intel = false;
+          amd = false;
+          nvidia = true;
+          graphics = true;
+          graphics32 = true;
+          amdgpuInitrd = false;
+          amdgpuOpencl = false;
+          nvidiaToolkit = true;
+          graphicsPackages = [ ];
+          systemPackages = [ "cuda-merged" ];
+          videoDrivers = [ "nvidia" ];
+        };
   }
 )

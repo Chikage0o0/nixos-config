@@ -15,8 +15,16 @@ in
       message = "使用传统 BIOS 启动时必须设置 platform.machine.boot.grubDevice，例如 /dev/disk/by-id/...。";
     }
     {
-      assertion = !(cfg.machine.wsl.enable && cfg.machine.nvidia.enable);
-      message = "WSL profile 不能启用 platform.machine.nvidia.enable；GPU/CUDA 能力只能用于非 WSL Linux 主机。";
+      assertion = !(cfg.machine.wsl.enable && cfg.machine.gpu.nvidia.enable);
+      message = "WSL profile 不能启用 platform.machine.gpu.nvidia.enable；GPU/CUDA 能力只能用于非 WSL Linux 主机。";
+    }
+    {
+      assertion =
+        !(lib.elem "ai-accelerated" cfg.roles)
+        || cfg.machine.gpu.intel.enable
+        || cfg.machine.gpu.amd.enable
+        || cfg.machine.gpu.nvidia.enable;
+      message = "ai-accelerated 需要至少一个 GPU 厂商 role；请同时启用 gpu-intel、gpu-amd 或 gpu-nvidia。";
     }
     {
       assertion = !(cfg.machine.wsl.enable && cfg.desktop.enable);

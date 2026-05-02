@@ -17,6 +17,12 @@ let
     kdePackages.kate
     kdePackages.ark
     kdePackages.kcalc
+    kdePackages.kio
+    kdePackages.kio-extras
+    kdePackages.kwallet
+    kdePackages.kwalletmanager
+    samba
+    cifs-utils
     p7zip
     unrar
     remmina

@@ -105,10 +105,24 @@ in
         };
       };
 
-      nvidia.enable = mkOption {
-        type = types.bool;
-        default = false;
-        description = "是否启用 NVIDIA/CUDA 机器能力。";
+      gpu = {
+        intel.enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "是否启用 Intel GPU 的基础图形/视频驱动能力。AI/计算运行时由 ai-accelerated 叠加。";
+        };
+
+        amd.enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "是否启用 AMD GPU 的基础图形/视频驱动能力。AI/计算运行时由 ai-accelerated 叠加。";
+        };
+
+        nvidia.enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "是否启用 NVIDIA GPU 的基础图形/视频驱动能力。CUDA 等 AI/计算运行时由 ai-accelerated 叠加。";
+        };
       };
 
       powerProfiles.enable = mkOption {
