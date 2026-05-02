@@ -36,6 +36,7 @@
     let
       defaultOverlay = final: prev: {
         opencode = final.callPackage ./pkgs/opencode { };
+        tabby = final.callPackage ./pkgs/tabby { };
       };
       platformLib = import ./lib { inherit inputs self; };
     in
@@ -58,6 +59,15 @@
         default = self.homeModules.platform;
         platform = ./modules/home;
       };
+
+      # 导出自定义包
+      packages = nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "aarch64-linux"
+      ] (
+        system:
+        nixpkgs.legacyPackages.${system}.extend self.overlays.default
+      );
 
       # 导出格式化工具
       formatter = nixpkgs.lib.genAttrs [

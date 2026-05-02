@@ -9,6 +9,11 @@ let
 in
 {
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {
+    home.sessionVariables = {
+      # 让 Electron 包装器在 Wayland 会话里自动附加 ozone 参数，避免 VSCode 回落到 XWayland。
+      NIXOS_OZONE_WL = "1";
+    };
+
     home.activation.setKsmserverLoginMode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file ksmserverrc --group General --key loginMode emptySession
     '';
@@ -22,6 +27,7 @@ in
 
     gtk = {
       enable = true;
+      gtk2.force = true;
       theme = {
         name = "Breeze-Dark";
         package = pkgs.kdePackages.breeze-gtk;

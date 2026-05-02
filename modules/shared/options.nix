@@ -210,13 +210,13 @@ in
         enable = mkOption {
           type = types.bool;
           default = true;
-          description = "是否自动启动 ssh-agent 并加载 sops 私钥。";
+          description = "是否启用会话级 OpenSSH agent 集成。";
         };
 
         sopsSecrets = mkOption {
           type = types.listOf types.str;
           default = [ ];
-          description = "要加载到 ssh-agent 的 sops secret 名称列表。";
+          description = "登录后自动加载到 ssh-agent 的 sops secret 名称列表。";
         };
       };
 

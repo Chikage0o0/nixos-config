@@ -54,6 +54,62 @@ let
         touch $out
       '';
 
+  mkSshAgentSessionCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      homeCfg = config.config.home-manager.users.${host.user.name};
+      socket = homeCfg.services.ssh-agent.socket;
+      addKeysService = homeCfg.systemd.user.services.ssh-add-sops-keys or { };
+      after = addKeysService.Unit.After or [ ];
+      envLines = addKeysService.Service.Environment or [ ];
+      execStart = addKeysService.Service.ExecStart or "MISSING";
+      gtk2ConfigPath = "${homeCfg.home.homeDirectory}/.gtkrc-2.0";
+      gtk2Force = (homeCfg.home.file.${gtk2ConfigPath}.force or false);
+      wantedBy = addKeysService.Install.WantedBy or [ ];
+      zshInit = homeCfg.programs.zsh.initContent or "";
+      passes =
+        homeCfg.services.ssh-agent.enable
+        && (homeCfg.systemd.user.sessionVariables.SSH_AUTH_SOCK or null) == "$XDG_RUNTIME_DIR/${socket}"
+        && builtins.hasAttr "ssh-add-sops-keys" homeCfg.systemd.user.services
+        && lib.elem "ssh-agent.service" after
+        && lib.elem "default.target" wantedBy
+        && lib.any (line: lib.hasInfix "SSH_AUTH_SOCK=%t/${socket}" line) envLines
+        && !(lib.hasInfix "ssh-agent -s" zshInit)
+        && !(lib.hasInfix "ssh-add" zshInit)
+        && !(lib.hasInfix "/run/secrets/" zshInit)
+        && gtk2Force;
+    in
+    pkgs.runCommand "${name}-ssh-agent-session"
+      {
+        pass = if passes then "1" else "0";
+        sessionSock = homeCfg.systemd.user.sessionVariables.SSH_AUTH_SOCK or "MISSING";
+        sshAgentEnabled = if homeCfg.services.ssh-agent.enable then "1" else "0";
+        gtk2ForceText = if gtk2Force then "1" else "0";
+        inherit socket;
+        afterText = lib.concatStringsSep "," after;
+        wantedByText = lib.concatStringsSep "," wantedBy;
+        envText = lib.concatStringsSep " | " envLines;
+        inherit execStart zshInit;
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected session-level ssh-agent wiring for ${name}." >&2
+          echo "sshAgentEnabled=$sshAgentEnabled" >&2
+          echo "socket=$socket" >&2
+          echo "sessionSock=$sessionSock" >&2
+          echo "gtk2Force=$gtk2ForceText" >&2
+          echo "after=$afterText" >&2
+          echo "wantedBy=$wantedByText" >&2
+          echo "env=$envText" >&2
+          echo "execStart=$execStart" >&2
+          echo "zshInit=$zshInit" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   user = {
     name = "example";
     fullName = "Example User";
@@ -121,6 +177,23 @@ let
       machine.boot.mode = "uefi";
     };
 
+    example-workstation-ssh-agent = base // {
+      hostname = "example-workstation-ssh-agent";
+      profiles = [ "workstation-base" ];
+      roles = [ "development" ];
+      machine.boot.mode = "uefi";
+      home.sshAgent.sopsSecrets = [ "ssh_private_key" ];
+      secrets.sops = {
+        enable = true;
+        defaultFile = ../../example/my-host/hosts/workstation/secrets.yaml;
+        ageKeyFile = "/tmp/example-age-key";
+        secrets.ssh_private_key = {
+          owner = user.name;
+          mode = "0400";
+        };
+      };
+    };
+
     example-gpu-workstation = base // {
       hostname = "example-gpu-workstation";
       profiles = [ "workstation-base" ];
@@ -144,5 +217,9 @@ lib.genAttrs systems (
     example-workstation-ksmserver-login-mode =
       mkKsmserverLoginModeCheck system "example-workstation"
         hosts.example-workstation;
+
+    example-workstation-ssh-agent-session =
+      mkSshAgentSessionCheck system "example-workstation-ssh-agent"
+        hosts.example-workstation-ssh-agent;
   }
 )

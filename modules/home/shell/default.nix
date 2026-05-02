@@ -1,16 +1,10 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
   cfg = config.platform;
-  loadSopsSecrets = lib.concatMapStringsSep "\n" (name: ''
-    if [ -f "/run/secrets/${name}" ]; then
-      ${pkgs.openssh}/bin/ssh-add "/run/secrets/${name}" >/dev/null 2>&1
-    fi
-  '') cfg.home.sshAgent.sopsSecrets;
 in
 {
   config = lib.mkIf cfg.home.shell.enable {
@@ -23,19 +17,6 @@ in
         ll = "ls -l";
         clean = "nix-collect-garbage -d";
       };
-      initContent = lib.mkIf cfg.home.sshAgent.enable ''
-        ssh-add -l >/dev/null 2>&1
-        ssh_agent_state=$?
-
-        if [ "$ssh_agent_state" -eq 2 ]; then
-          eval "$(${pkgs.openssh}/bin/ssh-agent -s)" >/dev/null
-          ssh_agent_state=1
-        fi
-
-        if [ "$ssh_agent_state" -eq 1 ]; then
-          ${loadSopsSecrets}
-        fi
-      '';
     };
 
     programs.ssh = {
