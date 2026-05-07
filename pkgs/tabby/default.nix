@@ -28,7 +28,7 @@
 }:
 
 let
-  version = "1.0.230";
+  version = "1.0.232";
   release =
     {
       x86_64-linux = {
