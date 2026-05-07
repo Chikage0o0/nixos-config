@@ -6,6 +6,11 @@
 }:
 let
   cfg = config.platform;
+  mpvDesktopEntry = builtins.readFile "${pkgs.mpv}/share/applications/mpv.desktop";
+  mpvDesktopEntryLocalPath = lib.replaceStrings
+    [ "Exec=mpv --player-operation-mode=pseudo-gui -- %U" ]
+    [ "Exec=mpv --player-operation-mode=pseudo-gui -- %F" ]
+    mpvDesktopEntry;
 in
 {
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {
@@ -51,6 +56,8 @@ in
       gtk.enable = true;
       x11.enable = true;
     };
+
+    xdg.dataFile."applications/mpv.desktop".text = mpvDesktopEntryLocalPath;
 
     programs.kitty = {
       enable = true;

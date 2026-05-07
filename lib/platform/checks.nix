@@ -110,6 +110,45 @@ let
         touch $out
       '';
 
+  mkMpvDesktopExecCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      homeCfg = config.config.home-manager.users.${host.user.name};
+      hasDesktopOverride = builtins.hasAttr "applications/mpv.desktop" homeCfg.xdg.dataFile;
+      desktopSource =
+        if hasDesktopOverride then homeCfg.xdg.dataFile."applications/mpv.desktop".source else "MISSING";
+    in
+    pkgs.runCommand "${name}-mpv-desktop-exec"
+      {
+        pass = if hasDesktopOverride then "1" else "0";
+        inherit desktopSource;
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected Home Manager to override applications/mpv.desktop for ${name}." >&2
+          exit 1
+        fi
+
+        if ! grep -Fxq 'Exec=mpv --player-operation-mode=pseudo-gui -- %F' "$desktopSource"; then
+          echo "Expected overridden mpv.desktop to use %F so Dolphin remote files resolve through kio-fuse." >&2
+          echo "desktopSource=$desktopSource" >&2
+          echo "Actual Exec lines:" >&2
+          grep '^Exec=' "$desktopSource" >&2 || true
+          exit 1
+        fi
+
+        if grep -Fxq 'Exec=mpv --player-operation-mode=pseudo-gui -- %U' "$desktopSource"; then
+          echo "Unexpected %U Exec remains in overridden mpv.desktop." >&2
+          echo "desktopSource=$desktopSource" >&2
+          grep '^Exec=' "$desktopSource" >&2 || true
+          exit 1
+        fi
+
+        touch $out
+      '';
+
   packageNames = packages: map lib.getName packages;
 
   mkWorkstationGraphicsBaseCheck =
@@ -333,6 +372,10 @@ lib.genAttrs systems (
     example-workstation-ssh-agent-session =
       mkSshAgentSessionCheck system "example-workstation-ssh-agent"
         hosts.example-workstation-ssh-agent;
+
+    example-workstation-mpv-desktop-exec =
+      mkMpvDesktopExecCheck system "example-workstation"
+        hosts.example-workstation;
 
     example-workstation-graphics-base =
       mkWorkstationGraphicsBaseCheck system "example-workstation"
