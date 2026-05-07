@@ -33,11 +33,11 @@ let
     {
       x86_64-linux = {
         asset = "tabby-${version}-linux-x64.tar.gz";
-        hash = "sha256-dH33qLrHpMwEr8BK7oUS3Mi+1RXhdAQbKCxXPD26cwI=";
+        hash = "sha256-UPWCaG0l8KNQTDzdfOWzOgoM6CKoxmnuoPek5GTYY1w=";
       };
       aarch64-linux = {
         asset = "tabby-${version}-linux-arm64.tar.gz";
-        hash = "sha256-aCtQqqjCozviRVwR8D8gYXRpXBJ2L1FQOaFYlFnwrI8=";
+        hash = "sha256-/I9u4MVlZRxY+L3lZSASsqEVx8tihVLRKFHyM6vsmQY=";
       };
     }
     .${stdenv.hostPlatform.system}

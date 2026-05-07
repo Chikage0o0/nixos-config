@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 一键更新所有 pkgs 的版本和 hash 值
-# 依赖: gh (GitHub CLI), nix, sha256sum, xxd, base64
+# 依赖: gh (GitHub CLI), nix, jq
 
 set -uo pipefail
 
@@ -37,7 +37,7 @@ update_opencode() {
 
     if [ -z "$latest_tag" ]; then
         echo "[opencode] 错误: 无法获取最新版本号"
-        return 0
+        return 1
     fi
 
     local latest_version="${latest_tag#v}"
@@ -45,44 +45,45 @@ update_opencode() {
     local current_version
     current_version=$(grep -oP 'version = "\K[^"]+' "$nix_file" | head -1 || true)
 
-    if [ "$latest_version" = "$current_version" ]; then
-        echo "[opencode] 版本已是最新 ($current_version)，跳过"
-        return 0
-    fi
-
     echo "[opencode] $current_version -> $latest_version"
-
-    local tmpdir
-    tmpdir=$(mktemp -d)
 
     local platforms=( "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" )
     local assets=( "opencode-linux-x64.tar.gz" "opencode-linux-arm64.tar.gz" "opencode-darwin-x64.zip" "opencode-darwin-arm64.zip" )
 
+    local needs_update=0
     for i in "${!platforms[@]}"; do
         local platform="${platforms[$i]}"
         local asset="${assets[$i]}"
+        local url="https://github.com/anomalyco/opencode/releases/download/${latest_tag}/${asset}"
 
-        echo "[opencode] 正在下载 $asset ..."
-        if ! gh release download "$latest_tag" \
-            --repo anomalyco/opencode \
-            --pattern "$asset" \
-            --dir "$tmpdir" --clobber &>/dev/null; then
-            echo "[opencode] 错误: 下载 $asset 失败"
-            rm -rf "$tmpdir"
-            return 0
+        echo "[opencode] 正在计算 $asset 的 hash ..."
+        local hash
+        hash=$(nix store prefetch-file --json "$url" 2>/dev/null | jq -r '.hash')
+
+        if [ -z "$hash" ] || [ "$hash" = "null" ]; then
+            echo "[opencode] 错误: 无法下载或计算 $asset 的 hash"
+            return 1
         fi
 
-        local sha256_hex hash
-        sha256_hex=$(sha256sum "$tmpdir/$asset" | awk '{print $1}')
-        hash="sha256-$(echo "$sha256_hex" | xxd -r -p | base64 -w0)"
+        local current_hash
+        current_hash=$(sed -n "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|.*hash = \"\\([^\"]*\\)\";.*|\\1|p" "$nix_file")
 
-        sed -i "/${platform}/,/}/ s|hash = \"[^\"]*\";|hash = \"${hash}\";|" "$nix_file"
+        if [ "$hash" != "$current_hash" ]; then
+            sed -i "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|hash = \"[^\"]*\";|hash = \"${hash}\";|" "$nix_file"
+            needs_update=1
+        fi
     done
 
-    rm -rf "$tmpdir"
-    sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
+    if [ "$latest_version" != "$current_version" ]; then
+        sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
+        needs_update=1
+    fi
 
-    echo "[opencode] ✓ 已更新到 $latest_version"
+    if [ "$needs_update" -eq 1 ]; then
+        echo "[opencode] ✓ 已更新"
+    else
+        echo "[opencode] 无变化，跳过"
+    fi
 }
 # ============================================================
 # tabby
@@ -100,7 +101,7 @@ update_tabby() {
 
     if [ -z "$latest_tag" ]; then
         echo "[tabby] 错误: 无法获取最新版本号"
-        return 0
+        return 1
     fi
 
     local latest_version="${latest_tag#v}"
@@ -108,46 +109,47 @@ update_tabby() {
     local current_version
     current_version=$(grep -oP 'version = "\K[^"]+' "$nix_file" | head -1 || true)
 
-    if [ "$latest_version" = "$current_version" ]; then
-        echo "[tabby] 版本已是最新 ($current_version)，跳过"
-        return 0
-    fi
-
     echo "[tabby] $current_version -> $latest_version"
-
-    local tmpdir
-    tmpdir=$(mktemp -d)
 
     local platforms=( "x86_64-linux" "aarch64-linux" )
     local assets=( "tabby-${latest_version}-linux-x64.tar.gz" "tabby-${latest_version}-linux-arm64.tar.gz" )
 
+    local needs_update=0
     for i in "${!platforms[@]}"; do
         local platform="${platforms[$i]}"
         local asset="${assets[$i]}"
+        local url="https://github.com/Eugeny/tabby/releases/download/${latest_tag}/${asset}"
 
-        echo "[tabby] 正在下载 $asset ..."
-        if ! gh release download "$latest_tag" \
-            --repo Eugeny/tabby \
-            --pattern "$asset" \
-            --dir "$tmpdir" --clobber &>/dev/null; then
-            echo "[tabby] 错误: 下载 $asset 失败"
-            rm -rf "$tmpdir"
-            return 0
+        echo "[tabby] 正在计算 $asset 的 hash ..."
+        local hash
+        hash=$(nix store prefetch-file --json "$url" 2>/dev/null | jq -r '.hash')
+
+        if [ -z "$hash" ] || [ "$hash" = "null" ]; then
+            echo "[tabby] 错误: 无法下载或计算 $asset 的 hash"
+            return 1
         fi
 
-        local sha256_hex hash
-        sha256_hex=$(sha256sum "$tmpdir/$asset" | awk '{print $1}')
-        hash="sha256-$(echo "$sha256_hex" | xxd -r -p | base64 -w0)"
+        # 只更新变化的部分
+        local current_hash
+        current_hash=$(sed -n "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|.*hash = \"\\([^\"]*\\)\";.*|\\1|p" "$nix_file")
 
-        sed -i "/${platform}/,/}/ s|hash = \"[^\"]*\";|hash = \"${hash}\";|" "$nix_file"
+        if [ "$hash" != "$current_hash" ]; then
+            sed -i "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|hash = \"[^\"]*\";|hash = \"${hash}\";|" "$nix_file"
+            needs_update=1
+        fi
     done
 
-    rm -rf "$tmpdir"
-    sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
-    # 同时更新 asset 字段中的版本号
-    sed -i "s|tabby-[0-9.]*-linux|tabby-${latest_version}-linux|g" "$nix_file"
+    if [ "$latest_version" != "$current_version" ]; then
+        sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
+        sed -i "s|tabby-[0-9.]*-linux|tabby-${latest_version}-linux|g" "$nix_file"
+        needs_update=1
+    fi
 
-    echo "[tabby] ✓ 已更新到 $latest_version"
+    if [ "$needs_update" -eq 1 ]; then
+        echo "[tabby] ✓ 已更新"
+    else
+        echo "[tabby] 无变化，跳过"
+    fi
 }
 # ============================================================
 # 主流程
