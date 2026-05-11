@@ -237,7 +237,7 @@ let
     hermesPackage
     agent-browser
     uv
-    nodejs_24
+    nodejs
     pnpm
     yarn
     ripgrep

@@ -90,7 +90,7 @@ Home Manager 模块通过现有 `home-manager.extraSpecialArgs.inputs` 访问该
 Home 模块内置默认依赖集合，以“装全一点”为目标，覆盖官方安装脚本和 agent 常见工作流需要的工具。默认集合：
 
 - Hermes 与 agent CLI：`hermesPackage`、`agent-browser`。
-- 官方安装脚本明确或常见需要：`uv`、`nodejs_24`、`ripgrep`、`ffmpeg`、`git`。
+- 官方安装脚本明确或常见需要：`uv`、`nodejs`、`ripgrep`、`ffmpeg`、`git`。
 - Python/Node 构建与包管理：`python3`、`python3Packages.pip`、`pnpm`、`yarn`。
 - 常见源码与构建工具：`gcc`、`gnumake`、`pkg-config`、`cmake`。
 - 常见归档与网络工具：`curl`、`wget`、`unzip`、`zip`、`gnutar`、`gzip`。
