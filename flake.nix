@@ -25,6 +25,11 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs =
@@ -37,6 +42,7 @@
       defaultOverlay = final: prev: {
         opencode = final.callPackage ./pkgs/opencode { };
         tabby = final.callPackage ./pkgs/tabby { };
+        agent-browser = final.callPackage ./pkgs/agent-browser { };
       };
       platformLib = import ./lib { inherit inputs self; };
     in
@@ -61,18 +67,21 @@
       };
 
       # 导出自定义包
-      packages = nixpkgs.lib.genAttrs [
-        "x86_64-linux"
-        "aarch64-linux"
-      ] (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
-        in
-        {
-          inherit (pkgs) opencode tabby;
-        }
-      );
+      packages =
+        nixpkgs.lib.genAttrs
+          [
+            "x86_64-linux"
+            "aarch64-linux"
+          ]
+          (
+            system:
+            let
+              pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
+            in
+            {
+              inherit (pkgs) opencode tabby agent-browser;
+            }
+          );
 
       # 导出格式化工具
       formatter = nixpkgs.lib.genAttrs [

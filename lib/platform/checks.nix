@@ -270,6 +270,7 @@ let
         "fullstack-development"
         "ai-tooling"
         "container-host"
+        "hermes"
       ];
       machine.wsl.enable = true;
       home.opencode.enable = true;

@@ -10,6 +10,7 @@
     ./development/packages.nix
     ./development/mirrors.nix
     ./opencode
+    ./hermes
     ./desktop
   ];
 }

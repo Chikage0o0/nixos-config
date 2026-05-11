@@ -253,6 +253,40 @@ in
           description = "运行时生成的 OpenCode 配置文件路径，优先于 settings。";
         };
       };
+
+      hermes = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "是否启用 Hermes Agent 用户态 CLI、依赖和用户服务。";
+        };
+
+        package = mkOption {
+          type = types.nullOr types.package;
+          default = null;
+          description = "Hermes Agent package；为 null 时使用官方 flake 的默认包。";
+        };
+
+        extraPackages = mkOption {
+          type = types.listOf types.package;
+          default = [ ];
+          description = "追加安装到 Hermes 用户环境的额外包；默认依赖集合由 Hermes Home 模块固定提供。";
+        };
+
+        service = {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
+            description = "是否声明用户级 hermes-agent gateway 服务。";
+          };
+
+          extraArgs = mkOption {
+            type = types.listOf types.str;
+            default = [ ];
+            description = "追加传给 `hermes gateway` 的命令行参数。";
+          };
+        };
+      };
     };
 
     development = {

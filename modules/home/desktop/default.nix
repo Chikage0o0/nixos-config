@@ -7,10 +7,11 @@
 let
   cfg = config.platform;
   mpvDesktopEntry = builtins.readFile "${pkgs.mpv}/share/applications/mpv.desktop";
-  mpvDesktopEntryLocalPath = lib.replaceStrings
-    [ "Exec=mpv --player-operation-mode=pseudo-gui -- %U" ]
-    [ "Exec=mpv --player-operation-mode=pseudo-gui -- %F" ]
-    mpvDesktopEntry;
+  mpvDesktopEntryLocalPath =
+    lib.replaceStrings
+      [ "Exec=mpv --player-operation-mode=pseudo-gui -- %U" ]
+      [ "Exec=mpv --player-operation-mode=pseudo-gui -- %F" ]
+      mpvDesktopEntry;
 in
 {
   config = lib.mkIf (cfg.desktop.enable && cfg.desktop.apps.enable) {

@@ -97,6 +97,7 @@ nixos-config-public.lib.mkHost {
     "fullstack-development"
     "ai-tooling"
     "container-host"
+    "hermes"
   ];
 }
 ```
@@ -143,6 +144,7 @@ chmod +x deploy.sh
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code、dbgate） |
 | `ai-tooling`            | OpenCode AI 助手与开发 Shell 环境                 |
 | `container-host`        | Podman 容器宿主                                    |
+| `hermes`                | Hermes Agent CLI、agent-browser、视频下载、Playwright/Chromium、中文字体和用户级 gateway 服务 |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
 | `remote-admin`          | Cockpit 远程管理面板（Cockpit 走 selective unstable 以便追新） |
 
@@ -179,6 +181,11 @@ chmod +x deploy.sh
 | `platform.home.opencode.enable`                 | bool                     | `false`     | 启用 OpenCode AI 助手                |
 | `platform.home.opencode.settings`               | attrs                    | `{ }`       | OpenCode 自定义配置                  |
 | `platform.home.opencode.configFile`             | nullOr string            | `null`      | 运行时生成的配置文件路径             |
+| `platform.home.hermes.enable`                   | bool                     | `false`     | 启用 Hermes Agent 用户态环境         |
+| `platform.home.hermes.package`                  | nullOr package           | `null`      | Hermes 包；null 时使用官方 flake 默认包 |
+| `platform.home.hermes.extraPackages`            | listOf package           | `[ ]`       | 追加安装到 Hermes 用户环境的额外包   |
+| `platform.home.hermes.service.enable`           | bool                     | `true`      | 声明用户级 Hermes gateway 服务        |
+| `platform.home.hermes.service.extraArgs`        | listOf string            | `[ ]`       | 追加传给 `hermes gateway` 的参数      |
 | `platform.home.sshAgent.enable`                 | bool                     | `true`      | 自动启动 ssh-agent                   |
 | `platform.home.sshAgent.sopsSecrets`            | listOf string            | `[ ]`       | 加载到 ssh-agent 的 sops secret      |
 | `platform.development.fullstack.enable`        | bool                     | `false`     | 启用全栈开发工具包                  |
@@ -208,6 +215,57 @@ chmod +x deploy.sh
 ---
 
 ## 高级用法
+
+### Hermes Agent 用户级服务
+
+启用 `hermes` role 后，主用户会获得 Hermes CLI、`agent-browser`、`yt-dlp`、`streamlink`、`playwright`、`playwright-mcp`、Chromium、Playwright browsers、中文/CJK/emoji 字体、较完整的 Python/Node/构建/媒体/搜索依赖，以及用户级 `hermes-agent.service`。本仓库不管理 `~/.hermes/config.yaml` 或 `~/.hermes/.env`，provider token 和 gateway token 仍由用户通过 Hermes CLI 写入自己的 home 目录。
+
+```nix
+public.lib.mkHost {
+  hostname = "ai-workstation";
+  system = "x86_64-linux";
+  user = commonUser;
+  profiles = [ "workstation-base" ];
+  roles = [
+    "development"
+    "ai-tooling"
+    "hermes"
+  ];
+}
+```
+
+首次部署后先配置 Hermes：
+
+```bash
+hermes setup
+```
+
+配置完成后启动 gateway：
+
+```bash
+systemctl --user start hermes-agent.service
+```
+
+如需随用户会话自动启动：
+
+```bash
+systemctl --user enable hermes-agent.service
+```
+
+查看日志：
+
+```bash
+journalctl --user -u hermes-agent.service -f
+```
+
+常用工具检查：
+
+```bash
+agent-browser --version
+yt-dlp --version
+playwright --version
+chromium --version
+```
 
 ### 物理机 + NVIDIA
 
@@ -288,8 +346,9 @@ nixos-config/
 │   │   ├── git/           # Git + SSH 签名
 │   │   ├── shell/         # Zsh + Starship
 │   │   ├── development/   # CLI 开发包与桌面 fullstack GUI 包门控
-│   │   ├── desktop/       # Kitty 与 mpv 桌面用户配置
-│   │   └── opencode/      # OpenCode AI 助手
+│   │   ├── opencode/      # OpenCode AI 助手
+│   │   ├── hermes/        # Hermes Agent、agent-browser、浏览器自动化与 gateway 服务
+│   │   └── desktop/       # Kitty 与 mpv 桌面用户配置
 │   └── shared/
 │       └── options.nix    # platform 选项定义
 ├── profiles/              # 机器形态定义
@@ -335,7 +394,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | opencode 自定义包                   |
+| `default` | opencode、tabby 与 agent-browser 自定义包 |
 
 ---
 
