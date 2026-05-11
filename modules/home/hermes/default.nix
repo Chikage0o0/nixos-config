@@ -86,11 +86,11 @@ in
         );
         Restart = "on-failure";
         RestartSec = 5;
+        TimeoutStopSec = 210;
         WorkingDirectory = "%h";
         Environment = [
           "HOME=%h"
           "HERMES_HOME=%h/.hermes"
-          "MESSAGING_CWD=%h"
           "PLAYWRIGHT_BROWSERS_PATH=${playwrightBrowsers}"
           "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1"
           "CHROME_PATH=${chromiumBinary}"
