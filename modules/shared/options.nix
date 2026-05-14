@@ -276,7 +276,7 @@ in
         workspace = mkOption {
           type = types.str;
           default = "%h";
-          description = "Hermes Agent gateway 用户服务工作目录，同时传给 WorkingDirectory 和 MESSAGING_CWD；支持 systemd %h 等 specifier。";
+          description = "Hermes Agent gateway 用户服务工作目录，传给 WorkingDirectory；支持 systemd %h 等 specifier。";
         };
 
         extraPackages = mkOption {

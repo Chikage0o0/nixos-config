@@ -64,7 +64,6 @@ in
 
     home.sessionVariables = {
       HERMES_HOME = cfg.homeDir;
-      MESSAGING_CWD = cfg.workspace;
       PLAYWRIGHT_BROWSERS_PATH = "${playwrightBrowsers}";
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
       CHROME_PATH = chromiumBinary;
@@ -93,7 +92,6 @@ in
         Environment = [
           "HOME=%h"
           "HERMES_HOME=${cfg.homeDir}"
-          "MESSAGING_CWD=${cfg.workspace}"
           "PLAYWRIGHT_BROWSERS_PATH=${playwrightBrowsers}"
           "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1"
           "CHROME_PATH=${chromiumBinary}"
