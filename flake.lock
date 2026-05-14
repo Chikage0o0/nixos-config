@@ -160,18 +160,14 @@
     "opencode-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1778574649,
-        "narHash": "sha256-uvhsq7ncwj7QCUM475WO5TQVboOHFy9JY1+j02ICCHs=",
-        "owner": "Chikage0o0",
-        "repo": "opencode",
-        "rev": "3fd48ec28e4eaf71afdf27efcf23d389b9cb84ea",
-        "type": "github"
+        "path": "./vendor/opencode",
+        "type": "path"
       },
       "original": {
-        "owner": "Chikage0o0",
-        "repo": "opencode",
-        "type": "github"
-      }
+        "path": "./vendor/opencode",
+        "type": "path"
+      },
+      "parent": []
     },
     "pyproject-build-systems": {
       "inputs": {

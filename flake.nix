@@ -2,6 +2,8 @@
   description = "NixOS Config Library - Reusable modules for CUDA/TensorRT Dev";
 
   inputs = {
+    self.submodules = true;
+
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
 
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -17,7 +19,7 @@
     };
 
     opencode-config = {
-      url = "github:Chikage0o0/opencode";
+      url = "path:./vendor/opencode";
       flake = false;
     };
 
