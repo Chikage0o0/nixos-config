@@ -267,6 +267,18 @@ in
           description = "Hermes Agent package；为 null 时使用官方 flake 的默认包。";
         };
 
+        homeDir = mkOption {
+          type = types.str;
+          default = "%h/.hermes";
+          description = "Hermes Agent 运行时配置目录，传给用户服务的 HERMES_HOME；支持 systemd %h 等 specifier。";
+        };
+
+        workspace = mkOption {
+          type = types.str;
+          default = "%h";
+          description = "Hermes Agent gateway 用户服务工作目录，同时传给 WorkingDirectory 和 MESSAGING_CWD；支持 systemd %h 等 specifier。";
+        };
+
         extraPackages = mkOption {
           type = types.listOf types.package;
           default = [ ];
