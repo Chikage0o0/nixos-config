@@ -247,6 +247,12 @@ in
           description = "OpenCode 非机密 settings 覆盖。";
         };
 
+        ohMyOpenCodeSlimSettings = mkOption {
+          type = types.attrs;
+          default = { };
+          description = "私库/主机对 oh-my-opencode-slim.json 的非机密覆盖。";
+        };
+
         configFile = mkOption {
           type = types.nullOr types.str;
           default = null;
