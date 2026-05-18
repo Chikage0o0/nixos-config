@@ -17,7 +17,7 @@ in
 
     home.file = {
       ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";
-      ".config/opencode/agent/".source = "${inputs.opencode-config}/agent";
+      ".config/opencode/agents/".source = "${inputs.opencode-config}/agents";
       ".config/opencode/commands/".source = "${inputs.opencode-config}/commands";
       ".config/opencode/AGENTS.md".source = "${inputs.opencode-config}/AGENTS.md";
       ".config/opencode/plugins/".source = "${inputs.opencode-config}/plugins";
