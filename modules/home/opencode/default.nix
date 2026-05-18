@@ -13,10 +13,6 @@ let
 in
 {
   config = lib.mkIf cfg.home.opencode.enable {
-    home.sessionVariables = {
-      OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = "1";
-    };
-
     home.packages = [ pkgsUnstable.openspec ];
 
     home.file = {
