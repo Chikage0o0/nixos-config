@@ -28,16 +28,16 @@
 }:
 
 let
-  version = "1.0.233";
+  version = "1.0.234";
   release =
     {
       x86_64-linux = {
         asset = "tabby-${version}-linux-x64.tar.gz";
-        hash = "sha256-d28Le0BonXV5F/aRJIgsLiwsCVnIBxWzkch+u0NtdUA=";
+        hash = "sha256-K2zb0gr8PsC1Ml5wOjrdqIAOhUa9oV4Gr9n1esEmTC4=";
       };
       aarch64-linux = {
         asset = "tabby-${version}-linux-arm64.tar.gz";
-        hash = "sha256-1deRv4e1lPnEwo1TlYnCRBNbWHL6bUC8TSNhVm0KRu4=";
+        hash = "sha256-45IEBedQ7bNBAsvbjuXCKc5dmBdmmmuaD/3doKBl94g=";
       };
     }
     .${stdenv.hostPlatform.system}

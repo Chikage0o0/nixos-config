@@ -7,11 +7,23 @@
 }:
 let
   cfg = config.platform.home.hermes;
-  hermesPackage =
+  hermesPackageBase =
     if cfg.package != null then
       cfg.package
     else
       inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  hasRuntimeDependencyOverrides = cfg.extraDependencyGroups != [ ] || cfg.extraPythonPackages != [ ];
+  hermesPackage =
+    if hasRuntimeDependencyOverrides then
+      assert lib.assertMsg (hermesPackageBase ? override) ''
+        platform.home.hermes.extraDependencyGroups/extraPythonPackages 需要可 override 的 Hermes package。
+        请使用官方 hermes-agent flake 包，或在 platform.home.hermes.package 中传入已包含依赖的自定义包。
+      '';
+      hermesPackageBase.override {
+        inherit (cfg) extraDependencyGroups extraPythonPackages;
+      }
+    else
+      hermesPackageBase;
   playwrightBrowsers = pkgs.playwright-driver.browsers;
   chromiumBinary = "${pkgs.chromium}/bin/chromium";
   defaultPackages = with pkgs; [

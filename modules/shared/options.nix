@@ -291,6 +291,25 @@ in
           description = "追加安装到 Hermes 用户环境的额外包；默认依赖集合由 Hermes Home 模块固定提供。";
         };
 
+        extraPythonPackages = mkOption {
+          type = types.listOf types.package;
+          default = [ ];
+          description = ''
+            追加到 Hermes 运行时 PYTHONPATH 的 Python 包。用于补充插件或平台适配器在 Nix
+            不可变环境中无法运行时安装的依赖；包应来自对应 Python package set。
+          '';
+        };
+
+        extraDependencyGroups = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          example = [ "feishu" ];
+          description = ''
+            追加构建 Hermes sealed Python venv 时启用的 pyproject dependency group。
+            适合启用上游已定义但默认 lazy-install 的平台适配器依赖，例如 Feishu。
+          '';
+        };
+
         service = {
           enable = mkOption {
             type = types.bool;
