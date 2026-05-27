@@ -22,6 +22,7 @@ in
       kmod
       usbutils
       openssl
+      file
     ]
     ++ cfg.packages.system.extra;
 }
