@@ -73,29 +73,41 @@ git init
 
 如果你已经有自己的私有 Git 仓库，这一步就把 `~/my-nixos-config` 推上去；后面重装时，你恢复的就是它，而不是公开仓库本身。
 
-## 3. 先把示例主机名改成你的机器
+## 3. 选择最接近的示例主机
 
-example 默认使用 `my-host`。正式接管之前，建议直接换成你的真实主机名，避免后面每次部署都记一个示例名。
+模板默认包含三台主机：`wsl-dev`、`server`、`workstation`。正式接管当前机器前，建议选择最接近的一台并改成真实 hostname，避免后续部署时记示例名。
 
 ```bash
 HOSTNAME_FINAL="your-hostname"
 
-mv hosts/my-host "hosts/$HOSTNAME_FINAL"
+# 当前机器是服务器/VPS 时：
+mv hosts/server "hosts/$HOSTNAME_FINAL"
+
+# 如果当前机器是桌面工作站，则改用：
+# mv hosts/workstation "hosts/$HOSTNAME_FINAL"
 ```
 
 然后同步改这几处：
 
 1. `flake.nix`
-   把 `hostConfigs` 里的键从 `"my-host"` 改成 `"$HOSTNAME_FINAL"`，并把路径改成 `./hosts/$HOSTNAME_FINAL`。
+   把 `nixosConfigurations.server` 或 `nixosConfigurations.workstation` 的 attr 名、`hostname = "...";` 和所有 `./hosts/<old-name>` 路径改成 `"$HOSTNAME_FINAL"` / `./hosts/$HOSTNAME_FINAL`。
 
 2. `.sops.yaml`
-   把主机别名 `&my-host` 改成 `&$HOSTNAME_FINAL`，并把加密规则路径从 `hosts/my-host/secrets.yaml` 改成 `hosts/$HOSTNAME_FINAL/secrets.yaml`。
+   把主机别名 `&server` 或 `&workstation` 改成 `&$HOSTNAME_FINAL`，并把加密规则路径改成 `hosts/$HOSTNAME_FINAL/secrets.yaml`。
 
-如果你懒得改，也可以保留 `my-host`；那后面所有 `.<hostname>` 的地方都改用 `my-host` 即可。
+3. 删除暂时不用的示例主机，或先保留作为参考。
 
-## 4. 把示例从 WSL 改成真实 NixOS 主机
+如果想从空脚手架开始，也可以运行：
 
-`example/my-host/hosts/my-host/default.nix` 默认是 WSL 示例。对于刚重装好的真实 NixOS 主机，至少要做下面两件事。
+```bash
+scripts/add-host.sh "$HOSTNAME_FINAL" x86_64-linux linux
+```
+
+再按脚本输出把 `mkHost` 片段加入 `flake.nix`。
+
+## 4. 调整为当前真实 NixOS 主机
+
+对于刚装好的真实 NixOS 主机，至少要做下面两件事。
 
 ### 4.1 复制硬件配置
 
@@ -105,25 +117,21 @@ cp /etc/nixos/hardware-configuration.nix "hosts/$HOSTNAME_FINAL/"
 
 ### 4.2 修改主机配置
 
-编辑 `hosts/$HOSTNAME_FINAL/default.nix`：
+编辑 `flake.nix`：
 
-1. 把 `isWSL = true;` 改成 `isWSL = false;`
-2. 物理机默认走 `grub + UEFI`，一般不需要额外改启动器设置
-3. 如果机器是传统 BIOS，再额外设置 `bootMode = "bios";` 和 `grubDevice = "/dev/disk/by-id/...";`
-4. 按机器实际情况设置 `isNvidia = true;` 或 `false;`
-5. 把 `username`、`userFullName`、`userEmail`、`sshPublicKey` 改成你的真实值
-6. 如果你是从“只有 root”的路径进入，这里的 `username` 应该和刚才手动创建的普通用户保持一致
+1. 把 `commonUser.name`、`fullName`、`email`、`sshPublicKey` 改成你的真实值。
+2. 如果你是从“只有 root”的路径进入，`commonUser.name` 应该和刚才手动创建的普通用户保持一致。
+3. 物理机默认可保留 `machine.boot.mode = "uefi";`。
+4. 如果机器是传统 BIOS，在 `machine.boot` 中设置 `mode = "bios";` 和 `grubDevice = "/dev/disk/by-id/...";`。
+5. 如果机器有 NVIDIA 并需要 CUDA/AI 运行时，保留或添加 `gpu-nvidia` 与 `ai-accelerated` 两个 role；否则删除它们。
 
-这里不要删除这段导入逻辑：
+对应主机声明里不要删除硬件模块引用：
 
 ```nix
-imports =
-  [ ]
-  ++ lib.optionals isWSL [ inputs.nixos-wsl.nixosModules.default ]
-  ++ (if isWSL then [ ] else [ ./hardware-configuration.nix ]);
+hardwareModules = [ ./hosts/<hostname>/hardware-configuration.nix ];
 ```
 
-因为物理机正是靠 `isWSL = false` 时自动导入 `./hardware-configuration.nix`。
+真实 NixOS 主机正是通过它导入由 `nixos-generate-config` 生成的硬件配置。WSL 主机则不需要 `hardware-configuration.nix`。
 
 如果 `/boot` 是独立文件系统，NixOS 的 `grub` 仍可能把内核复制到 `/boot`；切到 `grub` 可以减少 `systemd-boot` 对 EFI 分区的压力，但最终效果仍取决于你的分区布局。
 

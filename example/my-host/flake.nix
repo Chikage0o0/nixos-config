@@ -17,6 +17,7 @@
     {
       nixosConfigurations = {
         wsl-dev = public.lib.mkHost {
+          # WSL 开发环境：适合从 Windows 侧导入 NixOS-WSL 后作为日常终端使用。
           hostname = "wsl-dev";
           system = "x86_64-linux";
           user = commonUser;
@@ -32,7 +33,8 @@
           secrets.sops = {
             enable = true;
             defaultFile = ./hosts/wsl-dev/secrets.yaml;
-            ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
+            # build-wsl.sh 会把 host age key 注入到这个路径；导入后也可手动放置。
+            ageKeyFile = "/var/lib/sops-nix/age/keys.txt";
             secrets = {
               "user/hashedPassword".neededForUsers = true;
               "opencode/apiKey" = { };
@@ -46,6 +48,7 @@
         };
 
         server = public.lib.mkHost {
+          # 服务器示例：保留最小图形无关配置，适合 VPS/家用服务器继续扩展。
           hostname = "server";
           system = "x86_64-linux";
           user = commonUser;
@@ -66,6 +69,7 @@
         };
 
         workstation = public.lib.mkHost {
+          # 物理工作站示例：展示桌面、开发工具、OpenCode、SSH 私钥与 NVIDIA/CUDA 组合。
           hostname = "workstation";
           system = "x86_64-linux";
           user = commonUser;

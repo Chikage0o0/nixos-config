@@ -1,0 +1,12 @@
+# Nix build outputs
+result
+result-*
+
+# Local development caches
+.direnv/
+
+# WSL tarball output
+nixos.wsl
+
+# 明文 host age 私钥只允许保存在本地；可提交的是 age-key.txt.age。
+hosts/*/age-key.txt

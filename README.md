@@ -41,11 +41,14 @@
 
 如果你已经装好了一个最小可启动的 NixOS，当前主要还在用 `root` 和临时 `nix` 命令，想直接切到这套配置，先看这篇迁移指南：[`docs/migration-from-root-nix.md`](docs/migration-from-root-nix.md)
 
-### 前置条件
+### 前置条件与推荐起点
 
-- 已安装 NixOS（或准备全新安装）
-- 基本的命令行操作能力
-- 了解 Git 基本用法
+- 一台已安装 NixOS 的机器，或准备通过 `nixos-anywhere` / NixOS-WSL 初始化的新机器。
+- 启用 flakes 的 Nix，或能运行带 `--extra-experimental-features "nix-command flakes"` 的命令。
+- 基本 Git、SSH 和 NixOS 运维能力。
+- 准备一个**私有仓库**保存主机差异和加密 secrets；不要把真实 secrets 放进公共模块仓库。
+
+本仓库提供完整模板：[`example/my-host`](example/my-host)。建议先复制模板，再按自己的主机删减。
 
 ### 1. 创建私有仓库
 
@@ -53,18 +56,29 @@
 # 克隆公共模块库
 git clone https://github.com/Chikage0o0/nixos-config.git
 
-# 将 example 目录复制为你的私有仓库
+# 将 example 模板复制为你的私有仓库
 cp -r nixos-config/example/my-host ~/my-nixos-config
 cd ~/my-nixos-config
 git init
 ```
+
+模板内已经包含：
+
+- `flake.nix`：三台示例主机 `wsl-dev`、`server`、`workstation`
+- `.sops.yaml`：管理员和主机 recipient 的示例规则
+- `deploy.sh`：本机 `nixos-rebuild switch|boot` 包装脚本
+- `scripts/add-host.sh`：添加新主机脚手架
+- `scripts/remote-deploy.sh`：SSH 远程部署
+- `scripts/build-wsl.sh`：构建 NixOS-WSL 导入包
+- `scripts/reinstall.sh`：通过 `nixos-anywhere` 重装远端主机（破坏性，按需使用）
+- `hosts/<hostname>/`：主机差异、硬件配置和 secrets 示例
 
 ### 2. 配置 sops 密钥
 
 ```bash
 # 进入包含所需工具的 shell
 nix --extra-experimental-features "nix-command flakes" \
-  shell nixpkgs#age nixpkgs#ssh-to-age nixpkgs#sops nixpkgs#git nixpkgs#gh
+  shell nixpkgs#age nixpkgs#ssh-to-age nixpkgs#sops nixpkgs#mkpasswd
 
 # 生成管理员 age 密钥
 age-keygen -o ~/.config/sops/age/keys.txt
@@ -72,14 +86,27 @@ age-keygen -o ~/.config/sops/age/keys.txt
 # 查看公钥，填入 .sops.yaml 的 admin 处
 age-keygen -y ~/.config/sops/age/keys.txt
 
-# 在目标主机上获取 host age 公钥
-ssh-keyscan localhost 2>/dev/null | ssh-to-age
-# 将输出填入 .sops.yaml 的主机密钥处
+# 普通 NixOS 主机：从 SSH host key 派生 age recipient
+ssh-keyscan <target-host> 2>/dev/null | ssh-to-age
 ```
+
+WSL 主机建议单独生成 host age key，并在构建 WSL 镜像时注入 `/var/lib/sops-nix/age/keys.txt`：
+
+```bash
+age-keygen -o hosts/wsl-dev/age-key.txt
+age-keygen -y hosts/wsl-dev/age-key.txt
+
+# 可选：用管理员公钥加密后提交，明文 age-key.txt 不要提交
+age -e -r <admin-age-public-key> \
+  -o hosts/wsl-dev/age-key.txt.age \
+  hosts/wsl-dev/age-key.txt
+```
+
+把所有 `age1...` 公钥填入 `.sops.yaml`，再用 `sops -e -i hosts/<hostname>/secrets.yaml` 加密对应 secrets。
 
 ### 3. 编辑主机声明
 
-编辑 `flake.nix`，修改 `commonUser` 中的用户信息，或调整 profile/role 组合：
+编辑私有仓库的 `flake.nix`，先修改 `commonUser` 中的用户信息，再按主机类型调整 profile/role 组合：
 
 ```nix
 nixos-config-public.lib.mkHost {
@@ -102,19 +129,75 @@ nixos-config-public.lib.mkHost {
 }
 ```
 
-### 4. 部署
+常见组合：
+
+- WSL：`profiles = [ "wsl-base" ];` + `machine.wsl.enable = true;`
+- 服务器：`profiles = [ "server-base" ];` + `remote-admin` / `container-host`
+- 桌面工作站：`profiles = [ "workstation-base" ];` + `development` / `fullstack-development` / `ai-tooling`
+- NVIDIA/CUDA：同时启用 `gpu-nvidia` 和 `ai-accelerated`
+
+非 WSL 主机需要把目标机生成的硬件配置写入 `hosts/<hostname>/hardware-configuration.nix`：
+
+```bash
+sudo nixos-generate-config --show-hardware-config \
+  > hosts/workstation/hardware-configuration.nix
+```
+
+### 4. 评估与部署
+
+新文件尚未提交时，先让 flake 能看到它们：
+
+```bash
+git add --intent-to-add .
+nix eval .#nixosConfigurations.workstation.config.networking.hostName
+```
+
+本机部署：
 
 ```bash
 chmod +x deploy.sh
-./deploy.sh
+./deploy.sh workstation
 ```
+
+远程部署：
+
+```bash
+scripts/remote-deploy.sh root@1.2.3.4
+scripts/remote-deploy.sh --dry-run root@server.example.com
+```
+
+构建 WSL 导入包：
+
+```bash
+scripts/build-wsl.sh wsl-dev
+```
+
+更多脚本参数和高风险重装流程见 [`example/my-host/README.md`](example/my-host/README.md)。
 
 ### 5. 添加新主机
 
-1. 在 `flake.nix` 的 `nixosConfigurations` 中添加新的 `mkHost` 声明
-2. 创建对应的 `hosts/<hostname>/` 目录
-3. 在 `.sops.yaml` 中添加新主机密钥
-4. 加密新主机的 `secrets.yaml`
+```bash
+scripts/add-host.sh laptop x86_64-linux linux
+scripts/add-host.sh wsl-work x86_64-linux wsl
+```
+
+然后按脚本输出完成：
+
+1. 在 `flake.nix` 的 `nixosConfigurations` 中添加新的 `mkHost` 声明。
+2. 在 `.sops.yaml` 中添加新主机 recipient 和 `hosts/<hostname>/secrets.yaml` 规则。
+3. 填写并加密新主机的 `secrets.yaml`。
+4. 非 WSL 主机替换 `hardware-configuration.nix`。
+5. 运行 `nix eval .#nixosConfigurations.<hostname>.config.networking.hostName` 验证。
+
+### 6. 脚本职责速查
+
+| 脚本 | 场景 | 默认行为 | 风险提示 |
+| --- | --- | --- | --- |
+| `deploy.sh [hostname]` | 当前机器本机部署 | 询问 `switch` 或 `boot` | `switch` 会立即切换系统 |
+| `scripts/add-host.sh <hostname> [system] [linux|wsl]` | 添加主机脚手架 | 只创建文件，不改 `flake.nix` / `.sops.yaml` | 生成的 secrets 是占位明文，需加密 |
+| `scripts/remote-deploy.sh [选项] <ssh-target>` | 远程更新已有机器 | 探测远端 hostname 后执行 `nixos-rebuild boot` | 远端 hostname 必须匹配 flake host |
+| `scripts/build-wsl.sh <hostname>` | 生成 NixOS-WSL `nixos.wsl` | 构建并运行 tarball builder | 明文 `age-key.txt` 不要提交 |
+| `scripts/reinstall.sh <flake-host> <target-host> [disk-device]` | 通过 `nixos-anywhere` 重装 | 预检查 flake，可覆盖 disko 目标盘 | 破坏性操作，可能清空目标磁盘 |
 
 ---
 
@@ -278,12 +361,12 @@ public.lib.mkHost {
   roles = [
     "development"
     "ai-tooling"
+    "gpu-nvidia"
     "ai-accelerated"
     "container-host"
   ];
   machine = {
     boot.mode = "uefi";
-    nvidia.enable = true;
   };
   home.opencode.enable = true;
   secrets.sops = {
@@ -325,6 +408,8 @@ nixos-config/
 ├── flake.nix              # Flake 入口，导出模块和 overlays
 ├── example/               # 私有仓库模板
 │   └── my-host/           # 完整可运行示例（wsl-dev / server / workstation）
+│       ├── deploy.sh      # 本机部署脚本
+│       └── scripts/       # 添加主机、远程部署、重装、WSL 构建脚本
 ├── home/                  # 共享 Home 资源（如 starship.toml）
 ├── lib/
 │   └── platform/          # mkHost、mkSystem、mkHome 实现

@@ -1,8 +1,6 @@
 { config, lib, ... }:
 let
-  opencodeBaseConfig = builtins.fromJSON (
-    builtins.readFile ../../../../vendor/opencode/opencode.json
-  );
+  opencodeTemplate = builtins.readFile ../../templates/opencode-config.template.json;
 in
 {
   users.users.${config.platform.user.name}.hashedPasswordFile = lib.mkIf (
@@ -12,11 +10,10 @@ in
   sops.templates."opencode-config.json" = {
     owner = config.platform.user.name;
     mode = "0400";
-    content = builtins.toJSON (
-      lib.recursiveUpdate opencodeBaseConfig {
-        provider.openai.options.apiKey = config.sops.placeholder."opencode/apiKey";
-      }
-    );
+    content = lib.replaceStrings
+      [ "__OPENCODE_API_KEY__" ]
+      [ config.sops.placeholder."opencode/apiKey" ]
+      opencodeTemplate;
   };
 
   platform.home.opencode.configFile = config.sops.templates."opencode-config.json".path;
