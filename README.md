@@ -6,7 +6,7 @@
 
 基于 **NixOS Flakes** 的可复用模块库，为 **KDE Plasma 日常工作站**、**AI 研发**、**CUDA 加速**和**全栈开发**场景提供开箱即用的配置。
 
-仓库默认以当前 stable `nixpkgs` 作为系统基线；对确实需要追新的少数应用，模块可显式使用 `pkgsUnstable`。当前 `remote-admin` 中的 Cockpit 就采用这种 selective unstable 策略，以便在不牵动整套系统频道的前提下追踪新版。
+仓库默认以 NixOS 26.05 对应的 stable `nixpkgs` 作为系统基线；所有平台模块默认只使用这一套包集，避免在稳定基线之外混入额外 channel。
 
 ## 架构设计
 
@@ -208,7 +208,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 - **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
 - OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
-- VS Code 和 dbgate 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
+- VS Code 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
 
 ### Profile 列表
 
@@ -224,12 +224,12 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | Role                    | 描述                                              |
 | ----------------------- | ------------------------------------------------- |
 | `development`           | 基础开发工具链                                    |
-| `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code、dbgate） |
+| `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
 | `ai-tooling`            | OpenCode AI 助手与开发 Shell 环境                 |
 | `container-host`        | Podman 容器宿主                                    |
 | `hermes`                | Hermes Agent CLI、agent-browser、视频下载、Playwright/Chromium、中文字体和用户级 gateway 服务 |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
-| `remote-admin`          | Cockpit 远程管理面板（Cockpit 走 selective unstable 以便追新） |
+| `remote-admin`          | Cockpit 远程管理面板                              |
 
 ### platform 选项参考
 
@@ -243,7 +243,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.user.fullName`                        | string                   | **必填**    | 用户全名                             |
 | `platform.user.email`                           | string                   | **必填**    | 用户邮箱                             |
 | `platform.user.sshPublicKey`                    | string                   | **必填**    | SSH 公钥                             |
-| `platform.stateVersion`                         | string                   | `"25.11"`   | NixOS / HM stateVersion              |
+| `platform.stateVersion`                         | string                   | `"26.05"`   | NixOS / HM stateVersion              |
 | `platform.machine.class`                        | enum                     | `"generic"` | 机器形态：wsl / workstation / server |
 | `platform.machine.wsl.enable`                   | bool                     | `false`     | 是否启用 WSL 约束                    |
 | `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | GRUB 启动模式                         |
@@ -289,11 +289,11 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 默认硬件体验包括通过 power-profiles-daemon 提供 KDE 可识别的电源/性能档位，以及通过 brightnessctl 控制笔记本内置屏幕和标准背光设备亮度；外接显示器 DDC/CI 调光不默认启用。
 
-日常预置软件包括 Microsoft Edge、WPS Office CN、Gwenview、Spectacle、GIMP、Dolphin、Kate、Ark、KCalc、Bitwarden、Remmina、Plasma System Monitor、KDE Partition Manager、Filelight、Discover、AppImage 支持、Obsidian、Thunderbird、yt-dlp、ffmpeg-full 和 mediainfo。
+日常预置软件包括 Microsoft Edge、WPS Office CN、Gwenview、Spectacle、GIMP、Dolphin、Kate、Ark、KCalc、Bitwarden、Remmina、Plasma System Monitor、KDE Partition Manager、Filelight、Discover、AppImage 支持、Thunderbird、yt-dlp、ffmpeg-full 和 mediainfo。
 
 字体包含 Noto CJK、Noto Color Emoji、Sarasa Gothic、FiraCode Nerd Font、corefonts、vista-fonts 和 vista-fonts-chs，用于中文显示、emoji、编程字体候选和 WPS/Office 文档常见 Windows 字体兼容。
 
-基础桌面不包含聊天通讯软件、游戏/Wine/Proton 工具、同步云盘客户端、专用 PDF 查看器、IDE 或数据库 GUI。VS Code 与 dbgate 只在启用 `fullstack-development` role 且 platform.desktop.enable 与 platform.desktop.apps.enable 同时启用时通过 Home Manager 安装。
+基础桌面不包含聊天通讯软件、游戏/Wine/Proton 工具、同步云盘客户端、专用 PDF 查看器、IDE 或数据库 GUI。VS Code 只在启用 `fullstack-development` role 且 platform.desktop.enable 与 platform.desktop.apps.enable 同时启用时通过 Home Manager 安装。
 
 ---
 

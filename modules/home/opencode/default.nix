@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  pkgsUnstable,
   inputs,
   ...
 }:
@@ -13,7 +12,7 @@ let
 in
 {
   config = lib.mkIf cfg.home.opencode.enable {
-    home.packages = [ pkgsUnstable.openspec ];
+    home.packages = [ pkgs.openspec ];
 
     home.file = {
       ".config/opencode/skills/".source = "${inputs.opencode-config}/skills";

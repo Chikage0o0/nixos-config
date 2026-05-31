@@ -108,13 +108,13 @@ let
     };
 
   homeManagerBridgeModule =
-    host: pkgsUnstable:
+    host:
     { config, ... }:
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.extraSpecialArgs = {
-        inherit inputs pkgsUnstable;
+        inherit inputs;
         hostname = host.hostname;
       };
       home-manager.users.${config.platform.user.name} = {
@@ -138,11 +138,6 @@ rec {
       host = normalizeHost hostInput;
       profileModules = resolveProfiles host.profiles;
       roleModules = resolveRoles host.roles;
-      pkgsUnstable = import inputs.nixpkgs-unstable {
-        system = host.system;
-        config.allowUnfree = true;
-        overlays = [ self.overlays.default ];
-      };
       wslModules = lib.optionals (host.machine.wsl.enable or false) [
         inputs.nixos-wsl.nixosModules.default
       ];
@@ -150,12 +145,19 @@ rec {
     inputs.nixpkgs.lib.nixosSystem {
       system = host.system;
       specialArgs = {
-        inherit inputs pkgsUnstable;
+        inherit inputs;
         hostname = host.hostname;
       };
       modules = [
         { nixpkgs.overlays = [ self.overlays.default ]; }
-        { nixpkgs.config.allowUnfree = true; }
+        {
+          nixpkgs.config = {
+            allowUnfree = true;
+            # 临时允许这些 Electron 应用继续安装；待 nixos-26.05 中相关包
+            # 升级到安全 Electron 后应移除此例外。
+            permittedInsecurePackages = [ "electron-39.8.10" ];
+          };
+        }
         # 前向引用：由平台化重写任务 3/5 创建 nixosModules.platform 后生效
         # 骨架阶段此引用在 mkHost 被调用时才会实际求值，profileNames/roleNames 不受影响
         self.nixosModules.platform
@@ -169,7 +171,7 @@ rec {
       ++ roleModules
       ++ host.hardwareModules
       ++ host.extraModules
-      ++ [ (homeManagerBridgeModule host pkgsUnstable) ];
+      ++ [ (homeManagerBridgeModule host) ];
     };
 
   mkSystem = mkHost;

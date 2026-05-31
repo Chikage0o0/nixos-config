@@ -36,8 +36,8 @@ let
     kdePackages.discover
     # appimage-run 缺少 pname，覆盖仅补齐元数据以便验证匹配，不改变安装的 derivation
     (appimage-run // { pname = "appimage-run"; })
-    obsidian
     thunderbird
+    obsidian
     yt-dlp
     ffmpeg-full
     mediainfo

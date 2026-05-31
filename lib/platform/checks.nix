@@ -284,7 +284,7 @@ let
 
   base = {
     inherit user;
-    stateVersion = "25.11";
+    stateVersion = "26.05";
     secrets.sops.enable = false;
     # NixOS 强制要求定义根文件系统；eval-only check 使用最小 mock
     extraModules = [

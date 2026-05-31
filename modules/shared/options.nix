@@ -21,7 +21,7 @@ in
 
     stateVersion = mkOption {
       type = types.str;
-      default = "25.11";
+      default = "26.05";
       description = "NixOS 与 Home Manager 的 stateVersion。";
     };
 

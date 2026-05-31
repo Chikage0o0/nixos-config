@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  pkgsUnstable,
   ...
 }:
 let
@@ -31,18 +30,34 @@ let
   ];
   fullstackPackages = with pkgs; [
     go
+    gopls
+    gofumpt
+    golangci-lint
     rustc
     cargo
+    rust-analyzer
+    rustfmt
+    clippy
+    nil
+    nixfmt
+    typescript
+    eslint
+    prettier
+    # 当前 nixpkgs 输入未提供 vitest 包；用 Bun 保留项目本地优先的 vitest 命令入口。
+    (writeShellScriptBin "vitest" ''
+      exec ${bun}/bin/bun x vitest "$@"
+    '')
+    pyrefly
     sqlite
     postgresql
     just
     gnumake
   ];
   fullstackDesktopPackages = with pkgs; [
-    vscode
     dbgate
+    vscode
   ];
-  containerPackages = with pkgsUnstable; [
+  containerPackages = with pkgs; [
     podman-compose
     (writeShellScriptBin "docker-compose" ''
       exec ${podman-compose}/bin/podman-compose "$@"
@@ -50,6 +65,13 @@ let
   ];
 in
 {
+  home.sessionPath = lib.optionals cfg.development.fullstack.enable [
+    "$HOME/.bun/bin"
+    "$HOME/.local/bin"
+    "$HOME/go/bin"
+    "$HOME/.cargo/bin"
+  ];
+
   home.packages =
     basePackages
     ++ lib.optionals cfg.development.fullstack.enable fullstackPackages

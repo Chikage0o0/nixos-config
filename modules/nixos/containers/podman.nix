@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  pkgsUnstable,
+  pkgs,
   ...
 }:
 let
@@ -15,7 +15,7 @@ in
 
     podman = {
       enable = true;
-      package = pkgsUnstable.podman;
+      package = pkgs.podman;
 
       # 同时兼容 `docker` 命令和依赖 Docker API 的现有工具。
       dockerCompat = true;
