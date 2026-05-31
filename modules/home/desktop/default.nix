@@ -81,6 +81,10 @@ in
         background_blur = 10;
         mouse_map = "ctrl+left click ungrabbed mouse_handle_click selection link prompt";
       };
+      keybindings = {
+        # 保持 kitty 默认的同屏幕分块行为，只让新 shell 继承当前活动窗口目录。
+        "ctrl+shift+enter" = "launch --cwd=current";
+      };
     };
 
     programs.mpv = {
