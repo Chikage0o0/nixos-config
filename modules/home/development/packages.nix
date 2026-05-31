@@ -39,6 +39,9 @@ let
     rustfmt
     clippy
     gcc
+    pkg-config
+    # wayland-sys 等 Rust crate 通过 pkg-config 查找 wayland-client.pc。
+    wayland
     nil
     nixfmt
     typescript
@@ -54,6 +57,9 @@ let
     just
     gnumake
     tokei
+  ];
+  fullstackPkgConfigPackages = with pkgs; [
+    wayland
   ];
   fullstackDesktopPackages = with pkgs; [
     dbgate
@@ -73,6 +79,10 @@ in
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
+
+  home.sessionVariables = lib.mkIf cfg.development.fullstack.enable {
+    PKG_CONFIG_PATH = lib.makeSearchPathOutput "dev" "lib/pkgconfig" fullstackPkgConfigPackages;
+  };
 
   home.packages =
     basePackages
