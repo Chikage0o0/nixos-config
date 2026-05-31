@@ -52,6 +52,7 @@ let
     postgresql
     just
     gnumake
+    tokei
   ];
   fullstackDesktopPackages = with pkgs; [
     dbgate
