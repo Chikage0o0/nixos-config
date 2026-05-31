@@ -21,6 +21,9 @@ in
         init.defaultBranch = "main";
         gpg.format = "ssh";
         "gpg \"ssh\"".program = "${pkgs.openssh}/bin/ssh-keygen";
+        # GitHub HTTPS 操作优先使用 gh 已登录凭据，避免无交互环境落到 askpass 后失败。
+        "credential \"https://github.com\"".helper = [ "!${pkgs.gh}/bin/gh auth git-credential" ];
+        "credential \"https://gist.github.com\"".helper = [ "!${pkgs.gh}/bin/gh auth git-credential" ];
         commit.gpgsign = true;
       };
     };
