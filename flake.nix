@@ -43,6 +43,7 @@
         opencode = final.callPackage ./pkgs/opencode { };
         tabby = final.callPackage ./pkgs/tabby { };
         agent-browser = final.callPackage ./pkgs/agent-browser { };
+        wxwork = final.callPackage ./pkgs/wxwork { };
       };
       platformLib = import ./lib { inherit inputs self; };
     in
@@ -76,10 +77,21 @@
           (
             system:
             let
-              pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = [ self.overlays.default ];
+                config.allowUnfreePredicate =
+                  pkg:
+                  builtins.elem (nixpkgs.lib.getName pkg) [
+                    "wxwork"
+                  ];
+              };
             in
             {
               inherit (pkgs) opencode tabby agent-browser;
+            }
+            // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+              inherit (pkgs) wxwork;
             }
           );
 

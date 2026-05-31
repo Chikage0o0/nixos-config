@@ -38,6 +38,7 @@ let
     rust-analyzer
     rustfmt
     clippy
+    gcc
     nil
     nixfmt
     typescript
