@@ -438,8 +438,7 @@ nixos-config/
 │       └── options.nix    # platform 选项定义
 ├── profiles/              # 机器形态定义
 ├── roles/                 # 功能角色定义
-└── pkgs/
-    ├── opencode/          # OpenCode 自定义包
+└── pkgs/                  # 自定义包与更新脚本
 
 ```
 
@@ -479,7 +478,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | opencode、tabby 与 agent-browser 自定义包 |
+| `default` | 从 unstable 引入 opencode，并导出 tabby、agent-browser 等自定义包 |
 
 ---
 

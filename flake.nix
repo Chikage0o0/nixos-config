@@ -6,6 +6,8 @@
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,11 +38,12 @@
     inputs@{
       self,
       nixpkgs,
+      nixpkgs-unstable,
       ...
     }:
     let
       defaultOverlay = final: prev: {
-        opencode = final.callPackage ./pkgs/opencode { };
+        opencode = nixpkgs-unstable.legacyPackages.${final.stdenv.hostPlatform.system}.opencode;
         tabby = final.callPackage ./pkgs/tabby { };
         agent-browser = final.callPackage ./pkgs/agent-browser { };
         wxwork = final.callPackage ./pkgs/wxwork { };

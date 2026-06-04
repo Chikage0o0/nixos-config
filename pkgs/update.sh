@@ -22,70 +22,6 @@ gh_latest_tag() {
 }
 
 # ============================================================
-# opencode
-# ============================================================
-update_opencode() {
-    local nix_file="$SCRIPT_DIR/opencode/default.nix"
-    if [ ! -f "$nix_file" ]; then
-        echo "[opencode] 跳过: 找不到 $nix_file"
-        return 0
-    fi
-
-    echo "[opencode] 正在获取最新版本信息..."
-    local latest_tag
-    latest_tag=$(gh_latest_tag "anomalyco/opencode")
-
-    if [ -z "$latest_tag" ]; then
-        echo "[opencode] 错误: 无法获取最新版本号"
-        return 1
-    fi
-
-    local latest_version="${latest_tag#v}"
-
-    local current_version
-    current_version=$(grep -oP 'version = "\K[^"]+' "$nix_file" | head -1 || true)
-
-    echo "[opencode] $current_version -> $latest_version"
-
-    local platforms=( "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" )
-    local assets=( "opencode-linux-x64.tar.gz" "opencode-linux-arm64.tar.gz" "opencode-darwin-x64.zip" "opencode-darwin-arm64.zip" )
-
-    local needs_update=0
-    for i in "${!platforms[@]}"; do
-        local platform="${platforms[$i]}"
-        local asset="${assets[$i]}"
-        local url="https://github.com/anomalyco/opencode/releases/download/${latest_tag}/${asset}"
-
-        echo "[opencode] 正在计算 $asset 的 hash ..."
-        local hash
-        hash=$(nix store prefetch-file --json "$url" 2>/dev/null | jq -r '.hash')
-
-        if [ -z "$hash" ] || [ "$hash" = "null" ]; then
-            echo "[opencode] 错误: 无法下载或计算 $asset 的 hash"
-            return 1
-        fi
-
-        local current_hash
-        current_hash=$(sed -n "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|.*hash = \"\\([^\"]*\\)\";.*|\\1|p" "$nix_file")
-
-        if [ "$hash" != "$current_hash" ]; then
-            sed -i "/${platform}[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/ s|hash = \"[^\"]*\";|hash = \"${hash}\";|" "$nix_file"
-            needs_update=1
-        fi
-    done
-
-    if [ "$latest_version" != "$current_version" ]; then
-        sed -i "s|version = \"[^\"]*\";|version = \"$latest_version\";|" "$nix_file"
-        needs_update=1
-    fi
-
-    if [ "$needs_update" -eq 1 ]; then
-        echo "[opencode] ✓ 已更新"
-    else
-        echo "[opencode] 无变化，跳过"
-    fi
-}
-# ============================================================
 # tabby
 # ============================================================
 update_tabby() {
@@ -157,10 +93,6 @@ update_tabby() {
 echo "=========================================="
 echo "  pkgs 一键更新工具"
 echo "=========================================="
-echo ""
-
-update_opencode
-
 echo ""
 
 update_tabby
