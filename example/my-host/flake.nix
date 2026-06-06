@@ -1,7 +1,7 @@
 {
   description = "My NixOS Private Configuration";
 
-  inputs.nixos-config-public.url = "github:Chikage0o0/nixos-config";
+  inputs.nixos-config-public.url = "git+https://github.com/Chikage0o0/nixos-config?submodules=1";
 
   outputs =
     { nixos-config-public, ... }:
