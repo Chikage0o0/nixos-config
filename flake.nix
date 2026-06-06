@@ -43,7 +43,27 @@
     }:
     let
       defaultOverlay = final: prev: {
-        opencode = nixpkgs-unstable.legacyPackages.${final.stdenv.hostPlatform.system}.opencode;
+        opencode =
+          let
+            unstableOpencode = nixpkgs-unstable.legacyPackages.${final.stdenv.hostPlatform.system}.opencode;
+          in
+          unstableOpencode.overrideAttrs (
+            finalAttrs: previousAttrs: {
+              version = "1.16.2";
+
+              src = final.fetchFromGitHub {
+                owner = "anomalyco";
+                repo = "opencode";
+                tag = "v${finalAttrs.version}";
+                hash = "sha256-IpTD4YCgGNtYlZ6EoyY+YLD81rIFR0D2A4W3uhWSSfo=";
+              };
+
+              node_modules = previousAttrs.node_modules.overrideAttrs {
+                inherit (finalAttrs) version src;
+                outputHash = "sha256-4yjQlxN+U4CKwA/hE8gACuvA4bBeTrX0ACVBIK4UQCg=";
+              };
+            }
+          );
         tabby = final.callPackage ./pkgs/tabby { };
         agent-browser = final.callPackage ./pkgs/agent-browser { };
         wxwork = final.callPackage ./pkgs/wxwork { };
