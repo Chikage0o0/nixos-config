@@ -46,6 +46,9 @@ in
         smart-enter = {
           package = pkgs.yaziPlugins.smart-enter;
           setup = true;
+          # smart-enter 26.05+ 的 setup 直接读取 opts.open_multi；显式传入默认值，
+          # 避免 Home Manager 生成 setup() 导致插件收到 nil。
+          settings.open_multi = false;
         };
       }
       // lib.optionalAttrs config.programs.lazygit.enable {
