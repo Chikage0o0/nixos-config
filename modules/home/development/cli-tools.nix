@@ -53,6 +53,13 @@ in
         lazygit = pkgs.yaziPlugins.lazygit;
       };
       settings = {
+        opener.edit = [
+          {
+            run = ''hx "$@"'';
+            block = true;
+            for = "unix";
+          }
+        ];
         manager = {
           show_hidden = true;
           sort_dir_first = true;
