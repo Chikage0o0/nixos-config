@@ -194,6 +194,33 @@ let
 
   packageNames = packages: map lib.getName packages;
 
+  mkAiToolingDependenciesCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      homeCfg = config.config.home-manager.users.${host.user.name};
+      homePackageNames = packageNames (homeCfg.home.packages or [ ]);
+      passes =
+        homeCfg.programs.opencode.enable && homeCfg.programs.zsh.enable && lib.elem "rtk" homePackageNames;
+    in
+    pkgs.runCommand "${name}-ai-tooling-dependencies"
+      {
+        pass = if passes then "1" else "0";
+        packageText = lib.concatStringsSep "," homePackageNames;
+        opencodeEnabled = if homeCfg.programs.opencode.enable then "1" else "0";
+        zshEnabled = if homeCfg.programs.zsh.enable then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected ai-tooling role to provide OpenCode, shell, and rtk for ${name}." >&2
+          echo "opencode=$opencodeEnabled zsh=$zshEnabled" >&2
+          echo "packages=$packageText" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   mkWorkstationGraphicsBaseCheck =
     system: name: host:
     let
@@ -424,6 +451,10 @@ lib.genAttrs systems (
 
     example-wsl-dev-container-hermes-custom-dependencies =
       mkHermesCustomDependenciesCheck system "example-wsl-dev-container"
+        hosts.example-wsl-dev-container;
+
+    example-wsl-dev-container-ai-tooling-dependencies =
+      mkAiToolingDependenciesCheck system "example-wsl-dev-container"
         hosts.example-wsl-dev-container;
 
     example-workstation-graphics-base =

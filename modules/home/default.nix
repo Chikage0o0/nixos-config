@@ -9,6 +9,7 @@
     ./development/cli-tools.nix
     ./development/packages.nix
     ./development/mirrors.nix
+    ./rtk
     ./opencode
     ./hermes
     ./desktop

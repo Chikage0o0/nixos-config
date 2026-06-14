@@ -225,7 +225,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | ----------------------- | ------------------------------------------------- |
 | `development`           | 基础开发工具链                                    |
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
-| `ai-tooling`            | OpenCode AI 助手与开发 Shell 环境                 |
+| `ai-tooling`            | OpenCode AI 助手、RTK 输出压缩与开发 Shell 环境   |
 | `container-host`        | Podman 容器宿主                                    |
 | `hermes`                | Hermes Agent CLI、agent-browser、视频下载、Playwright/Chromium、中文字体和用户级 gateway 服务 |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
@@ -261,6 +261,8 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.services.cockpit.extraOrigins`        | listOf string            | `[ ]`       | 额外 Cockpit origin                  |
 | `platform.containers.podman.enable`             | bool                     | `false`     | 启用 Podman + Docker CLI 兼容层      |
 | `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
+| `platform.home.rtk.enable`                      | bool                     | `false`     | 安装 RTK CLI，供 AI 工具压缩命令输出 |
+| `platform.home.rtk.package`                     | nullOr package           | `null`      | RTK 包覆盖；null 时使用 `pkgs.rtk`   |
 | `platform.home.opencode.enable`                 | bool                     | `false`     | 启用 OpenCode AI 助手                |
 | `platform.home.opencode.settings`               | attrs                    | `{ }`       | OpenCode 自定义配置                  |
 | `platform.home.opencode.configFile`             | nullOr string            | `null`      | 运行时生成的配置文件路径             |

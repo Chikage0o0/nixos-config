@@ -220,6 +220,20 @@ in
         description = "是否启用现代 CLI 工具。";
       };
 
+      rtk = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "是否安装 RTK CLI，供 AI 工具压缩常见开发命令输出。";
+        };
+
+        package = mkOption {
+          type = types.nullOr types.package;
+          default = null;
+          description = "RTK CLI package；为 null 时使用 nixpkgs 的 pkgs.rtk。";
+        };
+      };
+
       sshAgent = {
         enable = mkOption {
           type = types.bool;
