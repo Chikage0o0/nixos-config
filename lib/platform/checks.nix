@@ -110,6 +110,57 @@ let
         touch $out
       '';
 
+  mkTabbyShellReportingCheck =
+    system: name: host:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = self.lib.mkHost (host // { inherit system; });
+      homeCfg = config.config.home-manager.users.${host.user.name};
+      marker = "]1337;CurrentDir=";
+      bashInit = homeCfg.programs.bash.initExtra or "";
+      zshInit = homeCfg.programs.zsh.initContent or "";
+      fishInit = homeCfg.programs.fish.interactiveShellInit or "";
+      nushellInit = homeCfg.programs.nushell.extraConfig or "";
+      fishEnabled = homeCfg.programs.fish.enable or false;
+      nushellEnabled = homeCfg.programs.nushell.enable or false;
+      passes =
+        lib.hasInfix marker bashInit
+        && lib.hasInfix "PROMPT_COMMAND" bashInit
+        && lib.hasInfix marker zshInit
+        && lib.hasInfix "precmd_functions" zshInit
+        && lib.hasInfix marker fishInit
+        && lib.hasInfix "--on-event fish_prompt" fishInit
+        && lib.hasInfix marker nushellInit
+        && lib.hasInfix "hooks.pre_prompt" nushellInit
+        && !fishEnabled
+        && !nushellEnabled;
+    in
+    pkgs.runCommand "${name}-tabby-shell-reporting"
+      {
+        pass = if passes then "1" else "0";
+        inherit
+          bashInit
+          zshInit
+          fishInit
+          nushellInit
+          ;
+        fishEnabledText = if fishEnabled then "1" else "0";
+        nushellEnabledText = if nushellEnabled then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected bash, zsh, fish and nushell Tabby snippets without implicitly enabling fish or nushell." >&2
+          echo "fishEnabled=$fishEnabledText" >&2
+          echo "nushellEnabled=$nushellEnabledText" >&2
+          echo "bashInit=$bashInit" >&2
+          echo "zshInit=$zshInit" >&2
+          echo "fishInit=$fishInit" >&2
+          echo "nushellInit=$nushellInit" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   mkMpvDesktopExecCheck =
     system: name: host:
     let
@@ -444,6 +495,10 @@ lib.genAttrs systems (
     example-workstation-ssh-agent-session =
       mkSshAgentSessionCheck system "example-workstation-ssh-agent"
         hosts.example-workstation-ssh-agent;
+
+    example-workstation-tabby-shell-reporting =
+      mkTabbyShellReportingCheck system "example-workstation"
+        hosts.example-workstation;
 
     example-workstation-mpv-desktop-exec =
       mkMpvDesktopExecCheck system "example-workstation"

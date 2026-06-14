@@ -211,7 +211,7 @@ in
       shell.enable = mkOption {
         type = types.bool;
         default = false;
-        description = "是否启用 zsh、starship、direnv 与 SSH 用户配置。";
+        description = "是否启用交互式 shell 基础配置、Tabby 当前目录上报、starship、direnv 与 SSH 用户配置。";
       };
 
       cliTools.enable = mkOption {
