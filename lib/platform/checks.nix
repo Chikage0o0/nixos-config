@@ -245,6 +245,110 @@ let
 
   packageNames = packages: map lib.getName packages;
 
+  mkChineseSupportCheck =
+    system: name: host: expected:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      evaluated = self.lib.mkHost (host // { inherit system; });
+      cfg = evaluated.config;
+      locale = cfg.platform.locale;
+      localeSettings = cfg.i18n.extraLocaleSettings or { };
+      fontPackages = packageNames (cfg.fonts.packages or [ ]);
+      fontconfig = cfg.fonts.fontconfig or { };
+      localConf = fontconfig.localConf or "";
+      extraLocales = cfg.i18n.extraLocales or [ ];
+      monospaceFonts = fontconfig.defaultFonts.monospace or [ ];
+      passes =
+        cfg.i18n.defaultLocale == locale
+        && lib.elem "en_US.UTF-8/UTF-8" extraLocales
+        && (localeSettings.LC_ADDRESS or null) == locale
+        && (localeSettings.LC_IDENTIFICATION or null) == locale
+        && (localeSettings.LC_MEASUREMENT or null) == locale
+        && (localeSettings.LC_MONETARY or null) == locale
+        && (localeSettings.LC_NAME or null) == locale
+        && (localeSettings.LC_NUMERIC or null) == locale
+        && (localeSettings.LC_PAPER or null) == locale
+        && (localeSettings.LC_TELEPHONE or null) == locale
+        && (localeSettings.LC_TIME or null) == locale
+        && lib.all (pkg: lib.elem pkg fontPackages) expected.fontPackages
+        && (fontconfig.antialias or false)
+        && (fontconfig.hinting.enable or false)
+        && (fontconfig.hinting.autohint or true) == false
+        && (fontconfig.hinting.style or null) == "slight"
+        && (fontconfig.subpixel.rgba or null) == "rgb"
+        && (fontconfig.subpixel.lcdfilter or null) == "default"
+        && monospaceFonts != [ ]
+        && builtins.head monospaceFonts == "Sarasa Mono SC"
+        && lib.all (pkg: lib.elem pkg fontPackages) (expected.extraFontPackages or [ ])
+        && lib.hasInfix "Sarasa Gothic SC" localConf
+        && lib.hasInfix "hintslight" localConf
+        && lib.hasInfix "Noto Color Emoji" localConf;
+    in
+    pkgs.runCommand "${name}-chinese-support"
+      {
+        pass = if passes then "1" else "0";
+        defaultLocale = cfg.i18n.defaultLocale or "MISSING";
+        expectedLocale = locale;
+        extraLocalesText = lib.concatStringsSep "," extraLocales;
+        fontPackagesText = lib.concatStringsSep "," fontPackages;
+        monospaceText = lib.concatStringsSep "," monospaceFonts;
+        antialias = if (fontconfig.antialias or false) then "1" else "0";
+        hintingEnable = if (fontconfig.hinting.enable or false) then "1" else "0";
+        hintingAutohint = if (fontconfig.hinting.autohint or false) then "1" else "0";
+        hintingStyle = fontconfig.hinting.style or "MISSING";
+        subpixelRgba = fontconfig.subpixel.rgba or "MISSING";
+        subpixelLcdfilter = fontconfig.subpixel.lcdfilter or "MISSING";
+        inherit localConf;
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected Chinese locale and font support for ${name}." >&2
+          echo "defaultLocale=$defaultLocale expectedLocale=$expectedLocale" >&2
+          echo "extraLocales=$extraLocalesText" >&2
+          echo "fontPackages=$fontPackagesText" >&2
+          echo "monospace=$monospaceText" >&2
+          echo "antialias=$antialias hintingEnable=$hintingEnable hintingAutohint=$hintingAutohint" >&2
+          echo "hintingStyle=$hintingStyle subpixelRgba=$subpixelRgba subpixelLcdfilter=$subpixelLcdfilter" >&2
+          echo "$localConf" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
+  mkChineseSupportDisabledCheck =
+    system: name: host: expected:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      evaluated = self.lib.mkHost (host // { inherit system; });
+      cfg = evaluated.config;
+      fontPackages = packageNames (cfg.fonts.packages or [ ]);
+      fontconfig = cfg.fonts.fontconfig or { };
+      localConf = fontconfig.localConf or "";
+      monospaceFonts = fontconfig.defaultFonts.monospace or [ ];
+      passes =
+        lib.all (pkg: !(lib.elem pkg fontPackages)) expected.fontPackages
+        && !lib.hasInfix "Sarasa Gothic SC" localConf
+        && !lib.hasInfix "Noto Color Emoji" localConf
+        && (monospaceFonts == [ ] || builtins.head monospaceFonts != "Sarasa Mono SC");
+    in
+    pkgs.runCommand "${name}-chinese-support-disabled"
+      {
+        pass = if passes then "1" else "0";
+        fontPackagesText = lib.concatStringsSep "," fontPackages;
+        monospaceText = lib.concatStringsSep "," monospaceFonts;
+        inherit localConf;
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "Expected Chinese locale/font module to stay disabled for ${name}." >&2
+          echo "fontPackages=$fontPackagesText" >&2
+          echo "monospace=$monospaceText" >&2
+          echo "$localConf" >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
   mkAiToolingDependenciesCheck =
     system: name: host:
     let
@@ -383,6 +487,14 @@ let
       machine.wsl.enable = true;
     };
 
+    example-wsl-chinese = base // {
+      hostname = "example-wsl-chinese";
+      profiles = [ "wsl-base" ];
+      roles = [ ];
+      machine.wsl.enable = true;
+      i18n.chinese.enable = true;
+    };
+
     example-wsl-dev-container = base // {
       hostname = "example-wsl-dev-container";
       profiles = [ "wsl-base" ];
@@ -503,6 +615,47 @@ lib.genAttrs systems (
     example-workstation-mpv-desktop-exec =
       mkMpvDesktopExecCheck system "example-workstation"
         hosts.example-workstation;
+
+    example-wsl-chinese-support-disabled =
+      mkChineseSupportDisabledCheck system "example-wsl" hosts.example-wsl {
+        fontPackages = [
+          "noto-fonts-cjk-sans"
+          "noto-fonts-cjk-serif"
+          "noto-fonts-color-emoji"
+          "sarasa-gothic"
+          "corefonts"
+          "vista-fonts"
+          "vista-fonts-chs"
+        ];
+      };
+
+    example-wsl-chinese-support =
+      mkChineseSupportCheck system "example-wsl-chinese" hosts.example-wsl-chinese {
+        fontPackages = [
+          "noto-fonts-cjk-sans"
+          "noto-fonts-cjk-serif"
+          "noto-fonts-color-emoji"
+          "sarasa-gothic"
+          "corefonts"
+          "vista-fonts"
+          "vista-fonts-chs"
+        ];
+      };
+
+    example-workstation-chinese-support =
+      mkChineseSupportCheck system "example-workstation" hosts.example-workstation
+        {
+          fontPackages = [
+            "noto-fonts-cjk-sans"
+            "noto-fonts-cjk-serif"
+            "noto-fonts-color-emoji"
+            "sarasa-gothic"
+            "corefonts"
+            "vista-fonts"
+            "vista-fonts-chs"
+          ];
+          extraFontPackages = [ "nerd-fonts-fira-code" ];
+        };
 
     example-wsl-dev-container-hermes-custom-dependencies =
       mkHermesCustomDependenciesCheck system "example-wsl-dev-container"

@@ -37,6 +37,12 @@ in
       description = "系统语言/区域设置。";
     };
 
+    i18n.chinese.enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "是否显式启用系统级中文 locale、中文字体与 fontconfig 回退规则。桌面 workstation 会自动启用；WSL 需按 host 单独开启。";
+    };
+
     user = {
       name = mkOption {
         type = types.str;
@@ -154,7 +160,7 @@ in
       apps.enable = mkOption {
         type = types.bool;
         default = false;
-        description = "是否启用日常完整桌面应用集、字体、输入法、应用分发工具，以及 Kitty/mpv Home Manager 配置。";
+        description = "是否启用日常完整桌面应用集、应用分发工具，以及 Kitty/mpv Home Manager 配置。中文 locale 与中文字体由独立 i18n 模块启用；workstation 桌面会自动开启，WSL 需按 host 显式设置。";
       };
     };
 

@@ -52,6 +52,7 @@ let
           system = host.system or "x86_64-linux";
           profiles = host.profiles or [ "generic-linux" ];
           roles = host.roles or [ ];
+          i18n = host.i18n or { };
           machine = host.machine or { };
           desktop = host.desktop or { };
           networking = host.networking or { };
@@ -77,6 +78,7 @@ let
         }
         (compactNulls {
           stateVersion = host.stateVersion or null;
+          i18n = host.i18n or null;
           machine = host.machine or null;
           desktop = host.desktop or null;
           nix = host.nix or null;

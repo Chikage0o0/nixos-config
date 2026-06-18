@@ -14,6 +14,7 @@
     ./hardware/nvidia.nix
     ./containers/podman.nix
     ./packages/system.nix
+    ./i18n/chinese.nix
     ./desktop/plasma.nix
   ];
 }
