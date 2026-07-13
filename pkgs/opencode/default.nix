@@ -5,17 +5,17 @@
 }:
 
 let
-  version = "1.17.8";
+  version = "1.17.18";
 
   release =
     {
       x86_64-linux = {
         npmPackage = "opencode-linux-x64-baseline";
-        hash = "sha256-qqi7U6W4nDDR2DmnRniGnJSoPmEg6aqGHSrVNkLetXY=";
+        hash = "sha256-CQ6j6wb7XA5sRBBb4vlAn3CvX350jD5T2lETV0BBI8s=";
       };
       aarch64-linux = {
         npmPackage = "opencode-linux-arm64";
-        hash = "sha256-lLPImi0MT6HfNNEM9E0T/FqJGvermFmVBEnjFmCxZG8=";
+        hash = "sha256-X5eD5zLWqb5y6DyupAhbLP1C5cXhoUfyFt8JjTdkB+E=";
       };
     }
     .${stdenvNoCC.hostPlatform.system}
