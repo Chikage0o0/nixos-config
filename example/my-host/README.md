@@ -6,9 +6,9 @@
 
 | 主机 | 用途 | 重点展示 |
 | --- | --- | --- |
-| `wsl-dev` | NixOS-WSL 开发环境 | `wsl-base`、开发/AI/容器 role、OpenCode、ssh-agent secret、WSL age key 注入 |
+| `wsl-dev` | NixOS-WSL 开发环境 | `wsl-base`、开发/AI/容器 role、OMP、ssh-agent secret、WSL age key 注入 |
 | `server` | VPS/家用服务器 | `server-base`、Cockpit 远程管理、Podman、硬件配置 |
-| `workstation` | 物理桌面工作站 | KDE Plasma、开发/AI/容器、OpenCode、ssh-agent secret、NVIDIA/CUDA |
+| `workstation` | 物理桌面工作站 | KDE Plasma、开发/AI/容器、OMP、ssh-agent secret、NVIDIA/CUDA |
 
 所有主机都通过 `public.lib.mkHost` 声明：`profile` 描述机器形态，`role` 叠加功能能力，`hosts/<hostname>/default.nix` 只保存该主机自己的差异。
 
@@ -37,8 +37,6 @@
 │       ├── default.nix               # 桌面工作站差异配置
 │       ├── hardware-configuration.nix
 │       └── secrets.yaml
-└── templates/
-    └── opencode-config.template.json # OpenCode 配置模板，__OPENCODE_API_KEY__ 由 sops 注入
 ```
 
 ## 快速开始
@@ -247,16 +245,11 @@ scripts/reinstall.sh server root@1.2.3.4 /dev/disk/by-id/<disk-id>
 - 脚本会要求输入 `flake-host` 再继续，避免误触。
 - 执行前确认 `.sops.yaml` 和对应 `secrets.yaml` 已包含目标机 recipient，否则安装后可能无法解密 secrets。
 
-## OpenCode 配置模板
+## OMP 配置
 
-`templates/opencode-config.template.json` 中的 `__OPENCODE_API_KEY__` 会由 `hosts/wsl-dev/default.nix` 和 `hosts/workstation/default.nix` 通过 `sops.templates` 替换为 `opencode/apiKey` secret，并把生成文件路径传给 `platform.home.opencode.configFile`。
+`ai-tooling` role 默认安装 `llm-agents.nix` 提供的 OMP，并启用 shell 与 RTK。用户级 OMP 配置放在 `~/.omp/agent/`；可通过 `platform.home.omp.files` 声明要部署的 `config.yml`、`AGENTS.md`、`skills/` 等文件。
 
-如果你不使用 OpenCode：
-
-1. 从对应主机的 `roles` 中删除 `ai-tooling`（按需）。
-2. 删除 `home.opencode.enable = true;`。
-3. 删除 `secrets.sops.secrets."opencode/apiKey"` 和 secrets 文件中的 `opencode.apiKey`。
-4. 删除主机 `default.nix` 里的 `sops.templates."opencode-config.json"` 与 `platform.home.opencode.configFile`。
+如果不使用 OMP，从对应主机的 `roles` 中删除 `ai-tooling`，或显式设置 `home.omp.enable = false;`。
 
 ## 添加新主机检查清单
 

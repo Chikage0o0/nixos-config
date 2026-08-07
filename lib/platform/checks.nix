@@ -357,19 +357,19 @@ let
       homeCfg = config.config.home-manager.users.${host.user.name};
       homePackageNames = packageNames (homeCfg.home.packages or [ ]);
       passes =
-        homeCfg.programs.opencode.enable && homeCfg.programs.zsh.enable && lib.elem "rtk" homePackageNames;
+        lib.elem "omp" homePackageNames && homeCfg.programs.zsh.enable && lib.elem "rtk" homePackageNames;
     in
     pkgs.runCommand "${name}-ai-tooling-dependencies"
       {
         pass = if passes then "1" else "0";
         packageText = lib.concatStringsSep "," homePackageNames;
-        opencodeEnabled = if homeCfg.programs.opencode.enable then "1" else "0";
+        ompInstalled = if lib.elem "omp" homePackageNames then "1" else "0";
         zshEnabled = if homeCfg.programs.zsh.enable then "1" else "0";
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected ai-tooling role to provide OpenCode, shell, and rtk for ${name}." >&2
-          echo "opencode=$opencodeEnabled zsh=$zshEnabled" >&2
+          echo "Expected ai-tooling role to provide OMP, shell, and rtk for ${name}." >&2
+          echo "omp=$ompInstalled zsh=$zshEnabled" >&2
           echo "packages=$packageText" >&2
           exit 1
         fi
@@ -506,7 +506,7 @@ let
         "hermes"
       ];
       machine.wsl.enable = true;
-      home.opencode.enable = true;
+      home.omp.enable = true;
       home.hermes.extraDependencyGroups = [ "feishu" ];
     };
 

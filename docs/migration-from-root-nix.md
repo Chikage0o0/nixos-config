@@ -179,13 +179,11 @@ cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
 
 ## 7. 填写并加密机密文件
 
-编辑 `hosts/$HOSTNAME_FINAL/secrets.yaml`，至少保证下面三个值已经填上：
+编辑 `hosts/$HOSTNAME_FINAL/secrets.yaml`，至少保证下面两个值已经填上：
 
 ```yaml
 user:
   hashedPassword: <这里填 sha-512 密码哈希>
-opencode:
-  apiKey: <这里填真实 key，或先填占位字符串>
 ssh_private_key: |
   -----BEGIN OPENSSH PRIVATE KEY-----
   ...
@@ -225,7 +223,7 @@ sudo env NIX_CONFIG="experimental-features = nix-command flakes" \
 这一步成功后：
 
 - `nix.settings.experimental-features` 会由本仓库配置接管
-- 普通用户、Home Manager、zsh、CLI 工具和 opencode 配置会一并落下去
+- 普通用户、Home Manager、zsh、CLI 工具和 OMP 配置会一并落下去
 - 后续再部署就可以直接在仓库根目录运行 `./deploy.sh` 了
 
 第一次切换完成后，建议立刻把当前目录提交到你自己的私有仓库。

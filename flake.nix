@@ -18,10 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    opencode-config = {
-      url = "path:./vendor/opencode";
-      flake = false;
-    };
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -43,7 +40,6 @@
     }:
     let
       defaultOverlay = final: prev: {
-        opencode = final.callPackage ./pkgs/opencode { };
         tabby = final.callPackage ./pkgs/tabby { };
         agent-browser = final.callPackage ./pkgs/agent-browser { };
         wxwork = final.callPackage ./pkgs/wxwork { };
@@ -91,7 +87,7 @@
               };
             in
             {
-              inherit (pkgs) opencode tabby agent-browser;
+              inherit (pkgs) tabby agent-browser;
             }
             // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
               inherit (pkgs) wxwork;

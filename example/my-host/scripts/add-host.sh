@@ -85,10 +85,6 @@ user:
   # 使用 mkpasswd -m yescrypt 或 mkpasswd -m sha-512 生成。
   hashedPassword: "$y$j9T$replace-me"
 
-# 如果该主机启用了 home.opencode.enable，并在 flake.nix 声明了 opencode/apiKey secret，取消注释：
-# opencode:
-#   apiKey: "sk-..."
-
 # 如果该主机需要把 SSH 私钥注入 ssh-agent，并在 flake.nix 声明了 ssh_private_key secret，取消注释：
 # ssh_private_key: |
 #   -----BEGIN OPENSSH PRIVATE KEY-----

@@ -254,29 +254,23 @@ in
         };
       };
 
-      opencode = {
+      omp = {
         enable = mkOption {
           type = types.bool;
           default = false;
-          description = "是否启用 OpenCode 用户态配置。";
+          description = "是否启用 Oh My Pi 用户态 CLI 与配置。";
         };
 
-        settings = mkOption {
-          type = types.attrs;
-          default = { };
-          description = "OpenCode 非机密 settings 覆盖。";
-        };
-
-        ohMyOpenCodeSlimSettings = mkOption {
-          type = types.attrs;
-          default = { };
-          description = "私库/主机对 oh-my-opencode-slim.json 的非机密覆盖。";
-        };
-
-        configFile = mkOption {
-          type = types.nullOr types.str;
+        package = mkOption {
+          type = types.nullOr types.package;
           default = null;
-          description = "运行时生成的 OpenCode 配置文件路径，优先于 settings。";
+          description = "Oh My Pi package；为 null 时使用 llm-agents.nix 的 omp package。";
+        };
+
+        files = mkOption {
+          type = types.attrsOf types.path;
+          default = { };
+          description = "部署到 ~/.omp/agent 的文件与目录，属性名为相对路径。";
         };
       };
 

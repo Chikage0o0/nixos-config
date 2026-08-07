@@ -25,8 +25,7 @@
 | `myConfig.enableCockpit`                | `platform.services.cockpit.enable`（或 `remote-admin` role） |
 | `myConfig.cockpitExtraOrigins`          | `platform.services.cockpit.extraOrigins`               |
 | `myConfig.extraHosts`                   | `platform.networking.extraHosts`                       |
-| `myConfig.opencodeSettings`             | `platform.home.opencode.settings`                      |
-| `myConfig.opencodeConfigFile`           | `platform.home.opencode.configFile`                    |
+| `myConfig.opencodeSettings` / `opencodeConfigFile` | `platform.home.omp.files`（需按 OMP `config.yml` schema 重写） |
 | `myConfig.sshSopsSecrets`               | `platform.home.sshAgent.sopsSecrets`                   |
 | `myConfig.enableSshAgent`               | `platform.home.sshAgent.enable`                        |
 | `myConfig.isWSL` + enableCockpit 默认逻辑 | `platform.services.cockpit.enable`（不再有 WSL 隐含规则） |
@@ -87,7 +86,7 @@ in
       nvidia.enable = true;
     };
     networking.transparentProxy.enable = true;
-    home.opencode.enable = true;
+    home.omp.enable = true;
     secrets.sops = {
       enable = true;
       defaultFile = ./hosts/workstation/secrets.yaml;

@@ -207,7 +207,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 - **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
-- OpenCode、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
+- OMP、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
 - VS Code 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
 
 ### Profile 列表
@@ -225,7 +225,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | ----------------------- | ------------------------------------------------- |
 | `development`           | 基础开发工具链                                    |
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
-| `ai-tooling`            | OpenCode AI 助手、RTK 输出压缩与开发 Shell 环境   |
+| `ai-tooling`            | OMP AI 助手、RTK 输出压缩与开发 Shell 环境        |
 | `container-host`        | Podman 容器宿主                                    |
 | `hermes`                | Hermes Agent CLI、agent-browser、视频下载、Playwright/Chromium、中文字体和用户级 gateway 服务 |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
@@ -263,9 +263,9 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
 | `platform.home.rtk.enable`                      | bool                     | `false`     | 安装 RTK CLI，供 AI 工具压缩命令输出 |
 | `platform.home.rtk.package`                     | nullOr package           | `null`      | RTK 包覆盖；null 时使用 `pkgs.rtk`   |
-| `platform.home.opencode.enable`                 | bool                     | `false`     | 启用 OpenCode AI 助手                |
-| `platform.home.opencode.settings`               | attrs                    | `{ }`       | OpenCode 自定义配置                  |
-| `platform.home.opencode.configFile`             | nullOr string            | `null`      | 运行时生成的配置文件路径             |
+| `platform.home.omp.enable`                      | bool                     | `false`     | 启用 OMP AI 助手                     |
+| `platform.home.omp.package`                     | nullOr package           | `null`      | OMP 包覆盖；null 时使用 llm-agents.nix |
+| `platform.home.omp.files`                       | attrsOf path             | `{ }`       | 部署到 `~/.omp/agent` 的文件与目录   |
 | `platform.home.hermes.enable`                   | bool                     | `false`     | 启用 Hermes Agent 用户态环境         |
 | `platform.home.hermes.package`                  | nullOr package           | `null`      | Hermes 包；null 时使用官方 flake 默认包 |
 | `platform.home.hermes.extraPackages`            | listOf package           | `[ ]`       | 追加安装到 Hermes 用户环境的额外包   |
@@ -370,13 +370,11 @@ public.lib.mkHost {
   machine = {
     boot.mode = "uefi";
   };
-  home.opencode.enable = true;
   secrets.sops = {
     enable = true;
     defaultFile = ./hosts/gpu-workstation/secrets.yaml;
     ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
     secrets = {
-      "opencode/apiKey" = { };
       "ssh_private_key" = {
         owner = commonUser.name;
         mode = "0400";
@@ -433,7 +431,7 @@ nixos-config/
 │   │   ├── git/           # Git + SSH 签名
 │   │   ├── shell/         # Zsh + Starship
 │   │   ├── development/   # CLI 开发包与桌面 fullstack GUI 包门控
-│   │   ├── opencode/      # OpenCode AI 助手
+│   │   ├── omp/           # Oh My Pi AI 助手
 │   │   ├── hermes/        # Hermes Agent、agent-browser、浏览器自动化与 gateway 服务
 │   │   └── desktop/       # Kitty 与 mpv 桌面用户配置
 │   └── shared/
@@ -480,7 +478,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | 从 unstable 引入 opencode，并导出 tabby、agent-browser 等自定义包 |
+| `default` | 导出 tabby、agent-browser 等自定义包 |
 
 ---
 

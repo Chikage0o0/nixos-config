@@ -1,9 +1,0 @@
-{
-  "provider": {
-    "openai": {
-      "options": {
-        "apiKey": "__OPENCODE_API_KEY__"
-      }
-    }
-  }
-}

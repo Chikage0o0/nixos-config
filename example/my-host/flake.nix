@@ -29,7 +29,6 @@
             "container-host"
           ];
           machine.wsl.enable = true;
-          home.opencode.enable = true;
           secrets.sops = {
             enable = true;
             defaultFile = ./hosts/wsl-dev/secrets.yaml;
@@ -37,7 +36,6 @@
             ageKeyFile = "/var/lib/sops-nix/age/keys.txt";
             secrets = {
               "user/hashedPassword".neededForUsers = true;
-              "opencode/apiKey" = { };
               "ssh_private_key" = {
                 owner = commonUser.name;
                 mode = "0400";
@@ -69,7 +67,7 @@
         };
 
         workstation = public.lib.mkHost {
-          # 物理工作站示例：展示桌面、开发工具、OpenCode、SSH 私钥与 NVIDIA/CUDA 组合。
+          # 物理工作站示例：展示桌面、开发/AI 工具、OMP、SSH 私钥与 NVIDIA/CUDA 组合。
           hostname = "workstation";
           system = "x86_64-linux";
           user = commonUser;
@@ -85,14 +83,12 @@
           machine = {
             boot.mode = "uefi";
           };
-          home.opencode.enable = true;
           secrets.sops = {
             enable = true;
             defaultFile = ./hosts/workstation/secrets.yaml;
             ageKeyFile = "/home/${commonUser.name}/.config/sops/age/keys.txt";
             secrets = {
               "user/hashedPassword".neededForUsers = true;
-              "opencode/apiKey" = { };
               "ssh_private_key" = {
                 owner = commonUser.name;
                 mode = "0400";

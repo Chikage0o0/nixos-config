@@ -10,7 +10,7 @@
     ./development/packages.nix
     ./development/mirrors.nix
     ./rtk
-    ./opencode
+    ./omp
     ./hermes
     ./desktop
   ];
