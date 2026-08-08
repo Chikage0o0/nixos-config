@@ -12,6 +12,12 @@ let
       cfg.package
     else
       inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
+  standardFiles = {
+    "AGENTS.md" = ./agent/AGENTS.md;
+    "skills" = ./agent/skills;
+    ".skill-lock.json" = ./agent/.skill-lock.json;
+    "config.yml" = ./agent/config.yml;
+  };
 in
 {
   config = lib.mkIf cfg.enable {
@@ -23,6 +29,6 @@ in
         inherit source;
         force = true;
       }
-    ) cfg.files;
+    ) (standardFiles // cfg.files);
   };
 }

@@ -356,20 +356,34 @@ let
       config = self.lib.mkHost (host // { inherit system; });
       homeCfg = config.config.home-manager.users.${host.user.name};
       homePackageNames = packageNames (homeCfg.home.packages or [ ]);
+      homeFiles = homeCfg.home.file or { };
+      standardOmpPaths = [
+        ".omp/agent/AGENTS.md"
+        ".omp/agent/skills"
+        ".omp/agent/.skill-lock.json"
+        ".omp/agent/config.yml"
+      ];
+      ompFilesInstalled = lib.all (path: builtins.hasAttr path homeFiles) standardOmpPaths;
+      missingOmpFiles = lib.filter (path: !(builtins.hasAttr path homeFiles)) standardOmpPaths;
       passes =
-        lib.elem "omp" homePackageNames && homeCfg.programs.zsh.enable && lib.elem "rtk" homePackageNames;
+        lib.elem "omp" homePackageNames
+        && homeCfg.programs.zsh.enable
+        && lib.elem "rtk" homePackageNames
+        && ompFilesInstalled;
     in
     pkgs.runCommand "${name}-ai-tooling-dependencies"
       {
         pass = if passes then "1" else "0";
         packageText = lib.concatStringsSep "," homePackageNames;
         ompInstalled = if lib.elem "omp" homePackageNames then "1" else "0";
-        zshEnabled = if homeCfg.programs.zsh.enable then "1" else "0";
+        standardOmpFilesInstalled = if ompFilesInstalled then "1" else "0";
+        missingOmpFilesText = lib.concatStringsSep "," missingOmpFiles;
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected ai-tooling role to provide OMP, shell, and rtk for ${name}." >&2
-          echo "omp=$ompInstalled zsh=$zshEnabled" >&2
+          echo "Expected ai-tooling role to provide OMP, its standard configuration, shell, and rtk for ${name}." >&2
+          echo "omp=$ompInstalled standardOmpFiles=$standardOmpFilesInstalled" >&2
+          echo "missingOmpFiles=$missingOmpFilesText" >&2
           echo "packages=$packageText" >&2
           exit 1
         fi

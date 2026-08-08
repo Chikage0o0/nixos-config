@@ -270,7 +270,7 @@ in
         files = mkOption {
           type = types.attrsOf types.path;
           default = { };
-          description = "部署到 ~/.omp/agent 的文件与目录，属性名为相对路径。";
+          description = "追加或覆盖部署到 ~/.omp/agent 的标准文件，属性名为相对路径。";
         };
       };
 

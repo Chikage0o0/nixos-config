@@ -247,7 +247,7 @@ scripts/reinstall.sh server root@1.2.3.4 /dev/disk/by-id/<disk-id>
 
 ## OMP 配置
 
-`ai-tooling` role 默认安装 `llm-agents.nix` 提供的 OMP，并启用 shell 与 RTK。用户级 OMP 配置放在 `~/.omp/agent/`；可通过 `platform.home.omp.files` 声明要部署的 `config.yml`、`AGENTS.md`、`skills/` 等文件。
+`ai-tooling` role 默认安装 `llm-agents.nix` 提供的 OMP，并启用 shell 与 RTK。启用后会自动把公共模块维护的 `config.yml`、`AGENTS.md`、`skills/` 和 `.skill-lock.json` 部署到 `~/.omp/agent/`；可通过 `platform.home.omp.files` 按相对路径追加文件或覆盖标准文件。
 
 如果不使用 OMP，从对应主机的 `roles` 中删除 `ai-tooling`，或显式设置 `home.omp.enable = false;`。
 

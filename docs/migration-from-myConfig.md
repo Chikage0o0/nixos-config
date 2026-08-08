@@ -25,7 +25,7 @@
 | `myConfig.enableCockpit`                | `platform.services.cockpit.enable`（或 `remote-admin` role） |
 | `myConfig.cockpitExtraOrigins`          | `platform.services.cockpit.extraOrigins`               |
 | `myConfig.extraHosts`                   | `platform.networking.extraHosts`                       |
-| `myConfig.opencodeSettings` / `opencodeConfigFile` | `platform.home.omp.files`（需按 OMP `config.yml` schema 重写） |
+| `myConfig.opencodeSettings` / `opencodeConfigFile` | OMP 标准配置已内置；差异通过 `platform.home.omp.files` 按 OMP schema 覆盖 |
 | `myConfig.sshSopsSecrets`               | `platform.home.sshAgent.sopsSecrets`                   |
 | `myConfig.enableSshAgent`               | `platform.home.sshAgent.enable`                        |
 | `myConfig.isWSL` + enableCockpit 默认逻辑 | `platform.services.cockpit.enable`（不再有 WSL 隐含规则） |

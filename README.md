@@ -263,9 +263,9 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
 | `platform.home.rtk.enable`                      | bool                     | `false`     | 安装 RTK CLI，供 AI 工具压缩命令输出 |
 | `platform.home.rtk.package`                     | nullOr package           | `null`      | RTK 包覆盖；null 时使用 `pkgs.rtk`   |
-| `platform.home.omp.enable`                      | bool                     | `false`     | 启用 OMP AI 助手                     |
+| `platform.home.omp.enable`                      | bool                     | `false`     | 启用 OMP AI 助手及标准 agent 配置    |
 | `platform.home.omp.package`                     | nullOr package           | `null`      | OMP 包覆盖；null 时使用 llm-agents.nix |
-| `platform.home.omp.files`                       | attrsOf path             | `{ }`       | 部署到 `~/.omp/agent` 的文件与目录   |
+| `platform.home.omp.files`                       | attrsOf path             | `{ }`       | 追加或覆盖 `~/.omp/agent` 标准文件   |
 | `platform.home.hermes.enable`                   | bool                     | `false`     | 启用 Hermes Agent 用户态环境         |
 | `platform.home.hermes.package`                  | nullOr package           | `null`      | Hermes 包；null 时使用官方 flake 默认包 |
 | `platform.home.hermes.extraPackages`            | listOf package           | `[ ]`       | 追加安装到 Hermes 用户环境的额外包   |
@@ -431,7 +431,7 @@ nixos-config/
 │   │   ├── git/           # Git + SSH 签名
 │   │   ├── shell/         # Zsh + Starship
 │   │   ├── development/   # CLI 开发包与桌面 fullstack GUI 包门控
-│   │   ├── omp/           # Oh My Pi AI 助手
+│   │   ├── omp/           # Oh My Pi AI 助手与标准 agent 配置
 │   │   ├── hermes/        # Hermes Agent、agent-browser、浏览器自动化与 gateway 服务
 │   │   └── desktop/       # Kitty 与 mpv 桌面用户配置
 │   └── shared/

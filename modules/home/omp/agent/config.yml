@@ -1,0 +1,61 @@
+providers:
+  webSearchOrder:
+    - codex
+    - perplexity
+    - exa
+    - tavily
+modelRoles:
+  designer: openai-codex/gpt-5.6-sol:xhigh
+  commit: openai-codex/gpt-5.6-luna:low
+  smol: openai-codex/gpt-5.6-luna:medium
+  slow: openai-codex/gpt-5.6-sol:xhigh
+  vision: openai-codex/gpt-5.6-luna:medium
+  plan: openai-codex/gpt-5.6-sol:high
+  tiny: openai-codex/gpt-5.6-luna:low
+  task: openai-codex/gpt-5.6-luna:xhigh
+  advisor: openai-codex/gpt-5.6-sol:high
+  webResearch: zhipu-coding-plan/glm-5.2:high
+  default: openai-codex/gpt-5.6-sol:high
+task:
+  agentModelOverrides:
+    librarian: "@webResearch"
+symbolPreset: nerd
+theme:
+  dark: pearl
+  light: light
+setupVersion: 1
+cycleOrder: []
+disabledProviders:
+  - claude
+  - codex
+  - gemini
+  - opencode
+  - github
+  - cursor
+  - agents
+colorBlindMode: false
+statusLine:
+  separator: powerline-thin
+  sessionAccent: true
+  compactThinkingLevel: false
+  transparent: true
+  showHookStatus: true
+terminal:
+  showProgress: true
+display:
+  showTokenUsage: false
+hideThinkingBlock: false
+doubleEscapeAction: tree
+autolearn:
+  enabled: false
+edit:
+  mode: hashline
+bash:
+  autoBackground:
+    enabled: false
+plan:
+  enabled: false
+dev:
+  autoqaConsent: granted
+generate_image:
+  enabled: true
