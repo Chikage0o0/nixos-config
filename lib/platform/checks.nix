@@ -357,6 +357,11 @@ let
       homeCfg = config.config.home-manager.users.${host.user.name};
       homePackageNames = packageNames (homeCfg.home.packages or [ ]);
       homeFiles = homeCfg.home.file or { };
+      ompProgramEnabled = homeCfg.programs.omp.enable;
+      usesFirstPartyPackage = homeCfg.programs.omp.package == inputs.omp.packages.${system}.default;
+      usesDeclarativeSettings = homeCfg.programs.omp.settings.startup.quiet or false;
+      ompConfigSource = toString (lib.attrByPath [ ".omp/agent/config.yml" "source" ] "" homeFiles);
+      usesGeneratedConfig = lib.hasInfix "omp-config.yml" ompConfigSource;
       standardOmpPaths = [
         ".omp/agent/AGENTS.md"
         ".omp/agent/skills"
@@ -366,7 +371,11 @@ let
       ompFilesInstalled = lib.all (path: builtins.hasAttr path homeFiles) standardOmpPaths;
       missingOmpFiles = lib.filter (path: !(builtins.hasAttr path homeFiles)) standardOmpPaths;
       passes =
-        lib.elem "omp" homePackageNames
+        ompProgramEnabled
+        && usesFirstPartyPackage
+        && usesDeclarativeSettings
+        && usesGeneratedConfig
+        && lib.elem "omp" homePackageNames
         && homeCfg.programs.zsh.enable
         && lib.elem "rtk" homePackageNames
         && ompFilesInstalled;
@@ -374,6 +383,11 @@ let
     pkgs.runCommand "${name}-ai-tooling-dependencies"
       {
         pass = if passes then "1" else "0";
+        ompProgram = if ompProgramEnabled then "1" else "0";
+        firstPartyPackage = if usesFirstPartyPackage then "1" else "0";
+        declarativeSettings = if usesDeclarativeSettings then "1" else "0";
+        generatedConfig = if usesGeneratedConfig then "1" else "0";
+        inherit ompConfigSource;
         packageText = lib.concatStringsSep "," homePackageNames;
         ompInstalled = if lib.elem "omp" homePackageNames then "1" else "0";
         standardOmpFilesInstalled = if ompFilesInstalled then "1" else "0";
@@ -381,7 +395,10 @@ let
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected ai-tooling role to provide OMP, its standard configuration, shell, and rtk for ${name}." >&2
+          echo "Expected ai-tooling role to use OMP's first-party Home Manager module and package, standard configuration, shell, and rtk for ${name}." >&2
+          echo "ompProgram=$ompProgram firstPartyPackage=$firstPartyPackage" >&2
+          echo "declarativeSettings=$declarativeSettings generatedConfig=$generatedConfig" >&2
+          echo "ompConfigSource=$ompConfigSource" >&2
           echo "omp=$ompInstalled standardOmpFiles=$standardOmpFilesInstalled" >&2
           echo "missingOmpFiles=$missingOmpFilesText" >&2
           echo "packages=$packageText" >&2
@@ -520,7 +537,15 @@ let
         "hermes"
       ];
       machine.wsl.enable = true;
-      home.omp.enable = true;
+      extraModules = base.extraModules ++ [
+        {
+          home-manager.sharedModules = [
+            {
+              programs.omp.settings.startup.quiet = true;
+            }
+          ];
+        }
+      ];
       home.hermes.extraDependencyGroups = [ "feishu" ];
     };
 

@@ -1,17 +1,9 @@
 {
   config,
-  inputs,
   lib,
-  pkgs,
   ...
 }:
 let
-  cfg = config.platform.home.omp;
-  package =
-    if cfg.package != null then
-      cfg.package
-    else
-      inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
   standardFiles = {
     "AGENTS.md" = ./agent/AGENTS.md;
     "skills" = ./agent/skills;
@@ -20,15 +12,14 @@ let
   };
 in
 {
-  config = lib.mkIf cfg.enable {
-    home.packages = [ package ];
+  config = lib.mkIf config.programs.omp.enable {
 
     home.file = lib.mapAttrs' (
       relativePath: source:
       lib.nameValuePair ".omp/agent/${relativePath}" {
-        inherit source;
-        force = true;
+        source = lib.mkDefault source;
+        force = lib.mkDefault true;
       }
-    ) (standardFiles // cfg.files);
+    ) standardFiles;
   };
 }

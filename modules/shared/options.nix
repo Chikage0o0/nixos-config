@@ -254,26 +254,6 @@ in
         };
       };
 
-      omp = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = "是否启用 Oh My Pi 用户态 CLI 与配置。";
-        };
-
-        package = mkOption {
-          type = types.nullOr types.package;
-          default = null;
-          description = "Oh My Pi package；为 null 时使用 llm-agents.nix 的 omp package。";
-        };
-
-        files = mkOption {
-          type = types.attrsOf types.path;
-          default = { };
-          description = "追加或覆盖部署到 ~/.omp/agent 的标准文件，属性名为相对路径。";
-        };
-      };
-
       hermes = {
         enable = mkOption {
           type = types.bool;

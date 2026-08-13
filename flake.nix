@@ -2,9 +2,9 @@
   description = "NixOS Config Library - Reusable modules for CUDA/TensorRT Dev";
 
   nixConfig = {
-    extra-substituters = [ "https://cache.numtide.com" ];
+    extra-substituters = [ "https://nix-community.cachix.org" ];
     extra-trusted-public-keys = [
-      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
   };
 
@@ -25,7 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    llm-agents.url = "github:numtide/llm-agents.nix";
+    omp.url = "github:can1357/oh-my-pi";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -60,7 +60,10 @@
       nixosModules = {
         default = self.nixosModules.platform;
         platform = {
-          imports = [ ./modules/nixos ];
+          imports = [
+            inputs.omp.nixosModules.default
+            ./modules/nixos
+          ];
           nixpkgs.overlays = [ self.overlays.default ];
         };
         profiles = import ./profiles;
@@ -70,7 +73,12 @@
       # 导出 Home Manager 模块
       homeModules = {
         default = self.homeModules.platform;
-        platform = ./modules/home;
+        platform = {
+          imports = [
+            inputs.omp.homeManagerModules.default
+            ./modules/home
+          ];
+        };
       };
 
       # 导出自定义包

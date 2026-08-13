@@ -263,9 +263,6 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
 | `platform.home.rtk.enable`                      | bool                     | `false`     | 安装 RTK CLI，供 AI 工具压缩命令输出 |
 | `platform.home.rtk.package`                     | nullOr package           | `null`      | RTK 包覆盖；null 时使用 `pkgs.rtk`   |
-| `platform.home.omp.enable`                      | bool                     | `false`     | 启用 OMP AI 助手及标准 agent 配置    |
-| `platform.home.omp.package`                     | nullOr package           | `null`      | OMP 包覆盖；null 时使用 llm-agents.nix |
-| `platform.home.omp.files`                       | attrsOf path             | `{ }`       | 追加或覆盖 `~/.omp/agent` 标准文件   |
 | `platform.home.hermes.enable`                   | bool                     | `false`     | 启用 Hermes Agent 用户态环境         |
 | `platform.home.hermes.package`                  | nullOr package           | `null`      | Hermes 包；null 时使用官方 flake 默认包 |
 | `platform.home.hermes.extraPackages`            | listOf package           | `[ ]`       | 追加安装到 Hermes 用户环境的额外包   |
@@ -276,6 +273,18 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.development.fullstack.enable`        | bool                     | `false`     | 启用全栈开发工具包                  |
 | `platform.packages.system.extra`                | listOf package           | `[ ]`       | 额外系统包                           |
 | `platform.packages.home.extra`                  | listOf package           | `[ ]`       | 额外用户包                           |
+
+### OMP 第一方 Home Manager Interface
+
+`ai-tooling` role 通过 Home Manager shared module 以 `mkDefault` 启用 `programs.omp.enable`。OMP 的安装与声明式设置只使用官方 Interface：
+
+| 选项路径 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `programs.omp.enable` | bool | `false` | 安装 OMP；`ai-tooling` role 默认启用 |
+| `programs.omp.package` | package | OMP 官方 flake 默认包 | 覆盖 OMP package |
+| `programs.omp.settings` | nullOr YAML attrs | `null` | 生成 `~/.omp/agent/config.yml` |
+
+公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和 `config.yml`。`programs.omp.settings` 或调用方直接声明的 `home.file` 会覆盖相应标准文件；仓库不再维护第二套 OMP Interface。
 
 ### workstation-base 默认桌面
 

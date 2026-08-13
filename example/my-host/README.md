@@ -247,9 +247,22 @@ scripts/reinstall.sh server root@1.2.3.4 /dev/disk/by-id/<disk-id>
 
 ## OMP 配置
 
-`ai-tooling` role 默认安装 `llm-agents.nix` 提供的 OMP，并启用 shell 与 RTK。启用后会自动把公共模块维护的 `config.yml`、`AGENTS.md`、`skills/` 和 `.skill-lock.json` 部署到 `~/.omp/agent/`；可通过 `platform.home.omp.files` 按相对路径追加文件或覆盖标准文件。
+`ai-tooling` role 通过 OMP 官方 Home Manager module 安装第一方源码构建包，并以 `mkDefault` 启用 `programs.omp.enable`、shell 与 RTK。公共模块会低优先级部署 `config.yml`、`AGENTS.md`、`skills/` 和 `.skill-lock.json`；`programs.omp.settings` 或调用方的 `home.file` 可覆盖对应标准文件。
 
-如果不使用 OMP，从对应主机的 `roles` 中删除 `ai-tooling`，或显式设置 `home.omp.enable = false;`。
+若不使用 OMP，从主机的 `roles` 中删除 `ai-tooling`。需要保留 role 但关闭或调整 OMP 时，通过 host `extraModules` 提供 Home Manager shared module：
+
+```nix
+extraModules = [
+  {
+    home-manager.sharedModules = [
+      {
+        programs.omp.enable = false;
+        # programs.omp.settings.startup.quiet = true;
+      }
+    ];
+  }
+];
+```
 
 ## 添加新主机检查清单
 
