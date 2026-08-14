@@ -25,7 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    omp.url = "github:can1357/oh-my-pi";
+    omp.url = "github:can1357/oh-my-pi/v17.3.3";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
