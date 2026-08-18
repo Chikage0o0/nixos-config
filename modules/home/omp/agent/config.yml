@@ -12,7 +12,7 @@ modelRoles:
   task: openai-codex/gpt-5.6-luna:xhigh
   advisor: openai-codex/gpt-5.6-sol:high
   webResearch: openai-codex/gpt-5.6-luna:high
-  default: openai-codex/gpt-5.6-sol:high
+  default: openai-codex/gpt-5.6-terra:xhigh
 task: 
   agentModelOverrides: 
     librarian: "@webResearch"
@@ -59,8 +59,10 @@ astGrep:
   enabled: true
 compaction: 
   strategy: context-full
+  thresholdTokens: 200000
 tui: 
   imeSafeCursor: true
+  titleState: false
 startup: 
   checkUpdate: false
 python: 
