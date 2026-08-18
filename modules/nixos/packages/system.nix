@@ -16,7 +16,6 @@ in
       git
       tree
       nixfmt
-      nixd
       cachix
       devenv
       kmod

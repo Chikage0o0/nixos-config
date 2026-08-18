@@ -42,7 +42,7 @@ let
     pkg-config
     # wayland-sys 等 Rust crate 通过 pkg-config 查找 wayland-client.pc。
     wayland
-    nil
+    nixd
     nixfmt
     typescript
     eslint

@@ -1,10 +1,7 @@
-providers:
-  webSearchOrder:
+providers: 
+  webSearchOrder: 
     - codex
-    - perplexity
-    - exa
-    - tavily
-modelRoles:
+modelRoles: 
   designer: openai-codex/gpt-5.6-sol:xhigh
   commit: openai-codex/gpt-5.6-luna:low
   smol: openai-codex/gpt-5.6-luna:medium
@@ -14,48 +11,59 @@ modelRoles:
   tiny: openai-codex/gpt-5.6-luna:low
   task: openai-codex/gpt-5.6-luna:xhigh
   advisor: openai-codex/gpt-5.6-sol:high
-  webResearch: zhipu-coding-plan/glm-5.2:high
+  webResearch: openai-codex/gpt-5.6-luna:high
   default: openai-codex/gpt-5.6-sol:high
-task:
-  agentModelOverrides:
+task: 
+  agentModelOverrides: 
     librarian: "@webResearch"
 symbolPreset: nerd
-theme:
+theme: 
   dark: pearl
   light: light
 setupVersion: 1
-cycleOrder: []
-disabledProviders:
+cycleOrder: 
+  []
+disabledProviders: 
   - claude
   - codex
   - gemini
   - opencode
   - github
   - cursor
-  - agents
 colorBlindMode: false
-statusLine:
+statusLine: 
   separator: powerline-thin
   sessionAccent: true
   compactThinkingLevel: false
   transparent: true
   showHookStatus: true
-terminal:
+terminal: 
   showProgress: true
-display:
-  showTokenUsage: false
 hideThinkingBlock: false
 doubleEscapeAction: tree
-autolearn:
-  enabled: false
-edit:
+edit: 
   mode: hashline
-bash:
-  autoBackground:
-    enabled: false
-plan:
+  fuzzyMatch: false
+plan: 
   enabled: false
-dev:
-  autoqaConsent: granted
-generate_image:
+commands: 
+  enableClaudeUser: false
+  enableClaudeProject: false
+  enableOpencodeUser: false
+  enableOpencodeProject: false
+dev: 
+  autoqa: false
+web_search: 
   enabled: true
+astGrep: 
+  enabled: true
+compaction: 
+  strategy: context-full
+tui: 
+  imeSafeCursor: true
+startup: 
+  checkUpdate: false
+python: 
+  kernelMode: session
+eval: 
+  js: false

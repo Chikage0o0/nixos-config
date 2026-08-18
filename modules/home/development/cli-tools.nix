@@ -56,13 +56,7 @@ in
         lazygit = pkgs.yaziPlugins.lazygit;
       };
       settings = {
-        opener.edit = [
-          {
-            run = ''hx "$@"'';
-            block = true;
-            for = "unix";
-          }
-        ];
+        # helix 已从基础工具集移除；编辑入口退回 opener 默认（vi/nano）。
         manager = {
           show_hidden = true;
           sort_dir_first = true;
@@ -99,21 +93,5 @@ in
       ];
     };
 
-    programs.helix = {
-      enable = true;
-      defaultEditor = true;
-      settings = {
-        theme = "base16_transparent";
-        editor = {
-          line-number = "relative";
-          cursorline = true;
-          color-modes = true;
-          bufferline = "multiple";
-          true-color = true;
-          indent-guides.render = true;
-          soft-wrap.enable = true;
-        };
-      };
-    };
   };
 }
