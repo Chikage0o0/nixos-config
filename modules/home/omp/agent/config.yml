@@ -45,8 +45,10 @@ terminal:
 hideThinkingBlock: false
 doubleEscapeAction: tree
 edit: 
-  mode: hashline
+  mode: replace
   fuzzyMatch: false
+  modelVariants: 
+    gpt: apply_patch
 plan: 
   enabled: false
 commands: 
