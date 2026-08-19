@@ -1,21 +1,24 @@
 providers: 
   webSearchOrder: 
     - codex
+  webSearchTimeoutSeconds: 60
+  openaiWebsockets: "on"
 modelRoles: 
   designer: openai-codex/gpt-5.6-sol:xhigh
-  commit: openai-codex/gpt-5.6-luna:low
-  smol: openai-codex/gpt-5.6-luna:medium
-  slow: openai-codex/gpt-5.6-sol:xhigh
+  smol: openai-codex/gpt-5.6-luna:high
+  slow: xai/grok-4.6:high
   vision: openai-codex/gpt-5.6-luna:medium
-  plan: openai-codex/gpt-5.6-sol:high
   tiny: openai-codex/gpt-5.6-luna:low
-  task: openai-codex/gpt-5.6-luna:xhigh
-  advisor: openai-codex/gpt-5.6-sol:high
-  webResearch: openai-codex/gpt-5.6-luna:high
-  default: openai-codex/gpt-5.6-terra:xhigh
+  task: openai-codex/gpt-5.6-terra:xhigh
+  default: zhipu-coding-plan/glm-5.3
 task: 
   agentModelOverrides: 
-    librarian: "@webResearch"
+    librarian: "@smol"
+    scout: "@smol"
+    designer: "@designer"
+    reviewer: "@slow"
+    task: "@task"
+    sonic: "@smol"
 symbolPreset: nerd
 theme: 
   dark: pearl
