@@ -13,8 +13,6 @@
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -25,7 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    omp.url = "github:can1357/oh-my-pi/v17.3.3";
+    omp.url = "github:can1357/oh-my-pi/v17.3.7";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -33,7 +31,7 @@
     };
 
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v2026.7.30";
+      url = "github:NousResearch/hermes-agent/v2026.8.18";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -42,7 +40,6 @@
     inputs@{
       self,
       nixpkgs,
-      nixpkgs-unstable,
       ...
     }:
     let
