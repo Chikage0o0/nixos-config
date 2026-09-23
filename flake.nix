@@ -23,7 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    omp.url = "github:can1357/oh-my-pi/v17.3.7";
+    omp.url = "github:can1357/oh-my-pi/v18.2.10";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -45,8 +45,6 @@
     let
       defaultOverlay = final: prev: {
         tabby = final.callPackage ./pkgs/tabby { };
-        agent-browser = final.callPackage ./pkgs/agent-browser { };
-        wxwork = final.callPackage ./pkgs/wxwork { };
       };
       platformLib = import ./lib { inherit inputs self; };
     in
@@ -91,18 +89,10 @@
               pkgs = import nixpkgs {
                 inherit system;
                 overlays = [ self.overlays.default ];
-                config.allowUnfreePredicate =
-                  pkg:
-                  builtins.elem (nixpkgs.lib.getName pkg) [
-                    "wxwork"
-                  ];
               };
             in
             {
-              inherit (pkgs) tabby agent-browser;
-            }
-            // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-              inherit (pkgs) wxwork;
+              inherit (pkgs) tabby;
             }
           );
 

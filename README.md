@@ -282,9 +282,9 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 |---|---|---|---|
 | `programs.omp.enable` | bool | `false` | 安装 OMP；`ai-tooling` role 默认启用 |
 | `programs.omp.package` | package | OMP 官方 flake 默认包 | 覆盖 OMP package |
-| `programs.omp.settings` | nullOr YAML attrs | `null` | 生成 `~/.omp/agent/config.yml` |
+| `programs.omp.settings` | nullOr YAML attrs | `null` | 以 `0600` 权限部署可写的 `~/.omp/agent/config.yml` |
 
-公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和 `config.yml`。`programs.omp.settings` 或调用方直接声明的 `home.file` 会覆盖相应标准文件；仓库不再维护第二套 OMP Interface。
+公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和默认 `config.yml`。设置 `programs.omp.settings` 后，OMP 官方模块会在 Home Manager activation 中以可写普通文件覆盖默认 `config.yml`，允许 OMP 运行时加锁和改写；下一次 `home-manager switch` 会恢复声明值。其他标准资产仍可由调用方直接声明 `home.file` 覆盖；仓库不再维护第二套 OMP Interface。
 
 ### workstation-base 默认桌面
 
@@ -312,7 +312,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 ### Hermes Agent 用户级服务
 
-启用 `hermes` role 后，主用户会获得 Hermes CLI、`agent-browser`、`yt-dlp`、`streamlink`、`playwright`、`playwright-mcp`、Chromium、Playwright browsers、中文/CJK/emoji 字体、较完整的 Python/Node/构建/媒体/搜索依赖，以及用户级 `hermes-agent.service`。本仓库不管理 `~/.hermes/config.yaml` 或 `~/.hermes/.env`，provider token 和 gateway token 仍由用户通过 Hermes CLI 写入自己的 home 目录。
+启用 `hermes` role 后，主用户会获得 Hermes CLI、nixpkgs 提供的 `agent-browser`、`yt-dlp`、`streamlink`、`playwright`、`playwright-mcp`、Chromium、Playwright browsers、中文/CJK/emoji 字体、较完整的 Python/Node/构建/媒体/搜索依赖，以及用户级 `hermes-agent.service`。本仓库不管理 `~/.hermes/config.yaml` 或 `~/.hermes/.env`，provider token 和 gateway token 仍由用户通过 Hermes CLI 写入自己的 home 目录。
 
 ```nix
 public.lib.mkHost {
@@ -487,7 +487,7 @@ nixos-config/
 
 | Overlay   | 描述                                    |
 | --------- | --------------------------------------- |
-| `default` | 导出 tabby、agent-browser 等自定义包 |
+| `default` | 导出 tabby 等自定义包 |
 
 ---
 

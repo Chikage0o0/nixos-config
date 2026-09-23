@@ -223,6 +223,7 @@ let
         builtins.hasAttr "hermes-agent" homeCfg.systemd.user.services
         && lib.hasInfix "/bin/hermes gateway" execStart
         && lib.elem "hermes-agent" packages
+        && lib.elem "agent-browser" packages
         && hermesPython != "MISSING";
     in
     pkgs.runCommand "${name}-hermes-custom-dependencies"
@@ -234,7 +235,7 @@ let
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected Hermes to evaluate with custom runtime dependencies for ${name}." >&2
+          echo "Expected Hermes to include agent-browser and evaluate with custom runtime dependencies for ${name}." >&2
           echo "execStart=$execStart" >&2
           echo "packages=$packageText" >&2
           exit 1
@@ -360,8 +361,12 @@ let
       ompProgramEnabled = homeCfg.programs.omp.enable;
       usesFirstPartyPackage = homeCfg.programs.omp.package == inputs.omp.packages.${system}.default;
       usesDeclarativeSettings = homeCfg.programs.omp.settings.startup.quiet or false;
-      ompConfigSource = toString (lib.attrByPath [ ".omp/agent/config.yml" "source" ] "" homeFiles);
-      usesGeneratedConfig = lib.hasInfix "omp-config.yml" ompConfigSource;
+      ompConfigActivation = homeCfg.home.activation.ompConfig or { };
+      ompConfigActivationData = ompConfigActivation.data or "";
+      usesWritableGeneratedConfig =
+        lib.elem "writeBoundary" (ompConfigActivation.after or [ ])
+        && lib.hasInfix "install -m 600" ompConfigActivationData
+        && lib.hasInfix "omp-config.yml" ompConfigActivationData;
       standardOmpPaths = [
         ".omp/agent/AGENTS.md"
         ".omp/agent/skills"
@@ -374,7 +379,7 @@ let
         ompProgramEnabled
         && usesFirstPartyPackage
         && usesDeclarativeSettings
-        && usesGeneratedConfig
+        && usesWritableGeneratedConfig
         && lib.elem "omp" homePackageNames
         && homeCfg.programs.zsh.enable
         && lib.elem "rtk" homePackageNames
@@ -386,8 +391,8 @@ let
         ompProgram = if ompProgramEnabled then "1" else "0";
         firstPartyPackage = if usesFirstPartyPackage then "1" else "0";
         declarativeSettings = if usesDeclarativeSettings then "1" else "0";
-        generatedConfig = if usesGeneratedConfig then "1" else "0";
-        inherit ompConfigSource;
+        writableGeneratedConfig = if usesWritableGeneratedConfig then "1" else "0";
+        inherit ompConfigActivationData;
         packageText = lib.concatStringsSep "," homePackageNames;
         ompInstalled = if lib.elem "omp" homePackageNames then "1" else "0";
         standardOmpFilesInstalled = if ompFilesInstalled then "1" else "0";
@@ -397,8 +402,8 @@ let
         if [[ "$pass" != 1 ]]; then
           echo "Expected ai-tooling role to use OMP's first-party Home Manager module and package, standard configuration, shell, and rtk for ${name}." >&2
           echo "ompProgram=$ompProgram firstPartyPackage=$firstPartyPackage" >&2
-          echo "declarativeSettings=$declarativeSettings generatedConfig=$generatedConfig" >&2
-          echo "ompConfigSource=$ompConfigSource" >&2
+          echo "declarativeSettings=$declarativeSettings writableGeneratedConfig=$writableGeneratedConfig" >&2
+          echo "ompConfigActivationData=$ompConfigActivationData" >&2
           echo "omp=$ompInstalled standardOmpFiles=$standardOmpFilesInstalled" >&2
           echo "missingOmpFiles=$missingOmpFilesText" >&2
           echo "packages=$packageText" >&2
