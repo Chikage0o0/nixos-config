@@ -1,18 +1,18 @@
-providers: 
-  webSearchOrder: 
-    - codex
+providers:
   webSearchTimeoutSeconds: 60
   openaiWebsockets: "on"
-modelRoles: 
-  designer: openai-codex/gpt-5.6-sol:xhigh
-  smol: openai-codex/gpt-5.6-luna:high
-  slow: xai/grok-4.6:high
-  vision: openai-codex/gpt-5.6-luna:medium
-  tiny: openai-codex/gpt-5.6-luna:low
-  task: openai-codex/gpt-5.6-terra:xhigh
-  default: zhipu-coding-plan/glm-5.3
-task: 
-  agentModelOverrides: 
+modelRoles:
+  designer: openai-codex/gpt-6-astra:high
+  smol: openai-codex/gpt-6-luna:high
+  slow: openai-codex/gpt-6-astra:xhigh
+  vision: openai-codex/gpt-5.6-luna:high
+  tiny: openai-codex/gpt-6-luna:low
+  task: openai-codex/gpt-6-sol:high
+  default: openai-codex/gpt-6-astra:medium
+  web: openai-codex/gpt-6-luna:high
+  image: openai-codex/gpt-image-1
+task:
+  agentModelOverrides:
     librarian: "@smol"
     scout: "@smol"
     designer: "@designer"
@@ -20,13 +20,16 @@ task:
     task: "@task"
     sonic: "@smol"
 symbolPreset: nerd
-theme: 
+theme:
   dark: pearl
   light: light
-setupVersion: 1
-cycleOrder: 
-  []
-disabledProviders: 
+setupVersion: 2
+cycleOrder:
+  - slow
+  - default
+  - smol
+  - task
+disabledProviders:
   - claude
   - codex
   - gemini
@@ -34,43 +37,52 @@ disabledProviders:
   - github
   - cursor
 colorBlindMode: false
-statusLine: 
+statusLine:
   separator: powerline-thin
   sessionAccent: true
   compactThinkingLevel: false
   transparent: true
   showHookStatus: true
-terminal: 
+terminal:
   showProgress: true
 hideThinkingBlock: false
-doubleEscapeAction: tree
-edit: 
-  mode: replace
-  fuzzyMatch: false
-  modelVariants: 
-    gpt: apply_patch
-plan: 
-  enabled: false
-commands: 
+doubleEscapeAction: rewind
+plan:
+  enabled: true
+  defaultOnStartup: false
+commands:
   enableClaudeUser: false
   enableClaudeProject: false
   enableOpencodeUser: false
   enableOpencodeProject: false
-dev: 
+dev:
   autoqa: false
-web_search: 
+web_search:
   enabled: true
-astGrep: 
+astGrep:
   enabled: true
-compaction: 
-  strategy: context-full
-  thresholdTokens: 200000
-tui: 
+compaction:
+  thresholdTokens: 250000
+  methodOrder:
+    - remote
+    - soft
+tui:
   imeSafeCursor: true
   titleState: false
-startup: 
+startup:
   checkUpdate: false
-python: 
+python:
   kernelMode: session
-eval: 
-  js: false
+eval:
+  js: true
+composer:
+  shape: box
+generate_image:
+  enabled: false
+edit:
+  mode: replace
+  fuzzyMatch: false
+  modelVariants:
+    gpt: apply_patch
+codexResets:
+  autoRedeem: "yes"
