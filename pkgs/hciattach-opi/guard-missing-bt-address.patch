@@ -1,0 +1,52 @@
+diff --git a/hciattach_sprd.c b/hciattach_sprd.c
+index 7ca6f95..c8e3572 100644
+--- a/hciattach_sprd.c
++++ b/hciattach_sprd.c
+@@ -404,18 +404,25 @@ static unsigned char compare_char(unsigned char ch)
+ 		return data;
+ }
+ 
+-static void set_mac_address(uint8_t *addr)
++static int set_mac_address(uint8_t *addr)
+ {
+ 	int i = 0;
+ 	unsigned char buff[255];
+ 	unsigned char tmp[5];
+ 	unsigned char str, str2;
+-
+ 	FILE *fp = fopen("/sys/class/addr_mgt/addr_bt", "r");
+ 
+ 	SPRD_DBG("%s", __func__);
++	if (!fp) {
++		SPRD_ERR("Unable to read Bluetooth address");
++		return -1;
++	}
+ 
+-	fscanf(fp, "%s", buff);
++	if (fscanf(fp, "%254s", buff) != 1 || strlen((char *)buff) < 17) {
++		SPRD_DBG("Invalid Bluetooth address");
++		fclose(fp);
++		return -1;
++	}
+ 	fclose(fp);
+ 
+ 	for (i=0; i<6; i++)
+@@ -429,6 +436,8 @@ static void set_mac_address(uint8_t *addr)
+ 
+ 	for (i = 0; i < 6; i++)
+ 		addr[5-i] = (unsigned char)local_bdaddr[i];
++
++	return 0;
+ }
+ 
+ static void vnd_load_configure(const char *p_path, const conf_entry_t *entry)
+@@ -777,7 +786,8 @@ int sprd_config_init(int fd, struct uart_t *u, struct termios *ti)
+ 	memset(&marlin3_rf_config, 0, sizeof(marlin3_rf_config));
+ 	vnd_load_configure(BT_CONFIG_PATH "/bt_configure_pskey.ini", &marlin3_pksey_table[0]);
+ 	vnd_load_configure(BT_CONFIG_PATH "/bt_configure_rf.ini", &marlin3_rf_table[0]);
+-	set_mac_address(marlin3_pskey.device_addr);
++	if (set_mac_address(marlin3_pskey.device_addr))
++		return -1;
+ 
+ 	marlin3_pskey_preload(NULL);
+ 	recv = bt_vendor_alloc(RESPONSE_LENGTH);

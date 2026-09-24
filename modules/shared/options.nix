@@ -98,9 +98,10 @@ in
           type = types.enum [
             "uefi"
             "bios"
+            "extlinux"
           ];
           default = "uefi";
-          description = "非 WSL 主机的 GRUB 启动模式。";
+          description = "非 WSL 主机的启动模式：UEFI/BIOS 使用 GRUB，extlinux 使用通用 Extlinux 引导配置。";
         };
 
         grubDevice = mkOption {

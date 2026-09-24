@@ -493,6 +493,30 @@ let
         touch $out
       '';
 
+  mkBootLoaderCheck =
+    system: name: host: expected:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      config = (self.lib.mkHost (host // { inherit system; })).config;
+      loader = config.boot.loader;
+      assertionsPass = lib.all (item: item.assertion) config.assertions;
+      passes =
+        loader.grub.enable == expected.grub
+        && loader.generic-extlinux-compatible.enable == expected.extlinux
+        && !loader.systemd-boot.enable
+        && loader.efi.canTouchEfiVariables == expected.efiVariables
+        && ((expected.biosDevice or null) == null || loader.grub.devices == [ expected.biosDevice ])
+        && (!(expected.uefiDevice or false) || loader.grub.device == "nodev")
+        && assertionsPass == (expected.valid or true);
+    in
+    pkgs.runCommand "${name}-boot-loader" { pass = if passes then "1" else "0"; } ''
+      if [[ "$pass" != 1 ]]; then
+        echo "Unexpected boot loader contract for ${name}." >&2
+        exit 1
+      fi
+      touch $out
+    '';
+
   user = {
     name = "example";
     fullName = "Example User";
@@ -644,6 +668,64 @@ lib.genAttrs systems (
   system:
   lib.mapAttrs' (name: host: lib.nameValuePair name (mkEvalCheck system name host)) hosts
   // {
+    example-uefi-boot-loader = mkBootLoaderCheck system "example-uefi" hosts.example-server {
+      grub = true;
+      extlinux = false;
+      efiVariables = true;
+      uefiDevice = true;
+    };
+
+    example-bios-boot-loader =
+      mkBootLoaderCheck system "example-bios"
+        (
+          hosts.example-server
+          // {
+            machine.boot = {
+              mode = "bios";
+              grubDevice = "/dev/disk/by-id/example-boot-disk";
+            };
+          }
+        )
+        {
+          grub = true;
+          extlinux = false;
+          efiVariables = false;
+          biosDevice = "/dev/disk/by-id/example-boot-disk";
+        };
+
+    example-extlinux-boot-loader =
+      mkBootLoaderCheck system "example-extlinux"
+        (hosts.example-server // { machine.boot.mode = "extlinux"; })
+        {
+          grub = false;
+          extlinux = true;
+          efiVariables = false;
+        };
+
+    example-extlinux-rejects-grub-device =
+      mkBootLoaderCheck system "example-extlinux-invalid-device"
+        (
+          hosts.example-server
+          // {
+            machine.boot = {
+              mode = "extlinux";
+              grubDevice = "/dev/disk/by-id/example-boot-disk";
+            };
+          }
+        )
+        {
+          grub = false;
+          extlinux = true;
+          efiVariables = false;
+          valid = false;
+        };
+
+    example-wsl-boot-loader = mkBootLoaderCheck system "example-wsl" hosts.example-wsl {
+      grub = false;
+      extlinux = false;
+      efiVariables = false;
+    };
+
     example-workstation-ksmserver-login-mode =
       mkKsmserverLoginModeCheck system "example-workstation"
         hosts.example-workstation;

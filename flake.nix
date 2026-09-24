@@ -63,6 +63,8 @@
         };
         profiles = import ./profiles;
         roles = import ./roles;
+        orangepi-zero3 = ./modules/nixos/hardware/orangepi-zero3.nix;
+        orangepi-zero3-image = ./modules/nixos/image/orangepi-zero3.nix;
       };
 
       # 导出 Home Manager 模块

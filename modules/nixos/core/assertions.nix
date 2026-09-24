@@ -15,6 +15,10 @@ in
       message = "使用传统 BIOS 启动时必须设置 platform.machine.boot.grubDevice，例如 /dev/disk/by-id/...。";
     }
     {
+      assertion = cfg.machine.boot.mode != "extlinux" || cfg.machine.boot.grubDevice == null;
+      message = "使用 extlinux 启动时不要设置 platform.machine.boot.grubDevice；此参数仅适用于传统 BIOS 的 GRUB 安装。";
+    }
+    {
       assertion = !(cfg.machine.wsl.enable && cfg.machine.gpu.nvidia.enable);
       message = "WSL profile 不能启用 platform.machine.gpu.nvidia.enable；GPU/CUDA 能力只能用于非 WSL Linux 主机。";
     }

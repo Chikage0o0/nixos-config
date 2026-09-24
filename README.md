@@ -6,7 +6,56 @@
 
 基于 **NixOS Flakes** 的可复用模块库，为 **KDE Plasma 日常工作站**、**AI 研发**、**CUDA 加速**和**全栈开发**场景提供开箱即用的配置。
 
-仓库默认以 NixOS 26.05 对应的 stable `nixpkgs` 作为系统基线；所有平台模块默认只使用这一套包集，避免在稳定基线之外混入额外 channel。
+仓库以 NixOS 26.05 对应的 stable `nixpkgs` 作为系统基线。Orange Pi Zero 3
+使用同一包集的 7.2 系列内核构建逻辑，显式固定源码版本为 7.2.6；
+板级内核覆盖不影响其他主机。
+
+## Orange Pi Zero 3
+
+提供两个按需导入的公共模块，不在其他主机上自动启用：
+
+- `nixosModules.orangepi-zero3`：H618 板级内核、DTB、UWE5622 驱动/固件与蓝牙初始化。
+  仅支持 `aarch64-linux` 目标，内部从 `pkgs.stdenv` 推导与主机包集一致的内核构建平台；
+  调用方不需要传递内核包集或额外模块参数。
+- `nixosModules.orangepi-zero3-image`：SD 分区、extlinux 文件填充、
+  8 KiB 偏移处的 U-Boot/SPL 写入与 `.img.xz` 压缩。
+  使用时需同时导入板级模块并选择 extlinux 启动。
+
+通过现有 `lib.mkHost` 组合：
+
+```nix
+{
+  system = "aarch64-linux";
+  stateVersion = "26.05";
+  profiles = [ "server-base" ];
+  machine.boot.mode = "extlinux";
+  hardwareModules = [ public.nixosModules.orangepi-zero3 ];
+  extraModules = [
+    public.nixosModules.orangepi-zero3-image
+    # 主机自己的网络、用户和设备策略模块
+  ];
+}
+```
+
+以上是主机声明片段，仍需提供 `hostname` 和 `user`。镜像通过
+`config.system.build.sdImage` 构建。日常受管配置不必导入 image 模块，
+但必须保留根挂载（默认 `/dev/disk/by-label/NIXOS_SD`、ext4）和
+`machine.boot.mode = "extlinux"`；首次分区扩容由镜像启动服务执行。
+以上配置采用原生 aarch64 构建以复用公共软件包缓存；
+在 x86_64 构建机上需使用 ARM builder 或 aarch64 binfmt。
+
+`machine.boot.mode` 支持 `uefi`、`bios`、`extlinux`：
+前两者使用 GRUB；extlinux 不启用 GRUB/systemd-boot，也不写 EFI variables。
+`machine.boot.grubDevice` 仅用于 BIOS，不能与 extlinux 一起设置。
+U-Boot 位于文件系统以外，普通 NixOS generation 更新不会更新或回滚该区域。
+
+内核源码版本、模块目录版本和 hash 显式固定为 Linux 7.2.6，不跟随
+`linuxPackages_latest` 自动升级。配套固定 Armbian `sunxi-7.0` 补丁与 UWE5622 源码；
+显示设备树补丁复用 7.2 上游已有的 SRAM C 节点，避免创建重叠 SRAM 区域。
+公开模块不含 SSH 身份、代理凭据、HA 实例或 Tailscale 网络策略。
+`pkgs/home-assistant-python-deps.nix` 提供固定 HA 自定义集成依赖，
+调用时传入 `pkgs.home-assistant.python3Packages`；其中 mini-racer wheel 仅支持 aarch64。
+升级内核或依赖锁后需重新构建并在设备验证 SD、以太网、Wi-Fi、蓝牙和 HDMI。
 
 ## 架构设计
 
@@ -246,7 +295,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.stateVersion`                         | string                   | `"26.05"`   | NixOS / HM stateVersion              |
 | `platform.machine.class`                        | enum                     | `"generic"` | 机器形态：wsl / workstation / server |
 | `platform.machine.wsl.enable`                   | bool                     | `false`     | 是否启用 WSL 约束                    |
-| `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | GRUB 启动模式                         |
+| `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | 启动模式：uefi / bios / extlinux       |
 | `platform.machine.boot.grubDevice`              | nullOr string            | `null`      | BIOS 模式下 GRUB 安装磁盘            |
 | `platform.machine.nvidia.enable`                | bool                     | `false`     | 启用 NVIDIA/CUDA                     |
 | `platform.machine.powerProfiles.enable`         | bool                     | `false`     | 启用通用电源/性能档位切换            |
