@@ -330,10 +330,40 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | 选项路径 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `programs.omp.enable` | bool | `false` | 安装 OMP；`ai-tooling` role 默认启用 |
-| `programs.omp.package` | package | OMP 官方 flake 默认包 | 覆盖 OMP package |
+| `programs.omp.package` | package | Numtide `llm-agents.nix` 的 `omp` | 普通赋值即可覆盖，无需 `mkForce` |
 | `programs.omp.settings` | nullOr YAML attrs | `null` | 以 `0600` 权限部署可写的 `~/.omp/agent/config.yml` |
 
 公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和默认 `config.yml`。设置 `programs.omp.settings` 后，OMP 官方模块会在 Home Manager activation 中以可写普通文件覆盖默认 `config.yml`，允许 OMP 运行时加锁和改写；下一次 `home-manager switch` 会恢复声明值。其他标准资产仍可由调用方直接声明 `home.file` 覆盖；仓库不再维护第二套 OMP Interface。
+
+#### 包来源、缓存与源码构建
+
+本仓库统一管理 OMP 的模块和包来源，调用方不需要在父 flake 中声明 OMP 输入、
+注入包集合或添加 Home Manager shared module 来覆盖安装包：
+
+- `inputs.omp` 保留官方 NixOS/Home Manager Interface；`inputs.llm-agents` 固定到
+  [`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix) 的
+  `e28ea84e78517e5d05ae0c399da00e848e207261`，提供 OMP `18.3.2`。
+- `nixosModules.default` 和 `homeModules.default` 均以 `lib.mkDefault` 选择
+  `inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp`，
+  覆盖 `x86_64-linux` 与 `aarch64-linux`。独立 Home Manager 消费方也使用同一默认包。
+  自定义包仍通过对应层级的 `programs.omp.package` 设置。
+- 保留 `llm-agents` 自己的 nixpkgs 锁，不设置 `inputs.nixpkgs.follows`，也不使用其
+  共享 nixpkgs overlay；改变构建输入会改变 store 路径，可能失去缓存命中。
+- 公共 NixOS 基础模块和本 flake 的 `nixConfig` 均配置 `https://cache.numtide.com`，
+  公钥为 `niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=`。
+  这是对 Numtide 构建产物的额外信任，不替代已有缓存。依赖 flake 的 `nixConfig`
+  不替代消费方顶层的缓存配置；首次部署或独立 Home Manager 使用时，需要在构建机
+  的 Nix 配置或顶层 flake 中显式信任该缓存。
+- Numtide 的包从源码编译 Rust native addon 和 Bun CLI。缓存与本地 store 均没有输出时，
+  Nix 可回退到源码构建；源码、依赖需可下载或已在 store 中，并需要足够资源及对应架构
+  的本地、远程或模拟 builder。锁定输入可重建不等于已验证逐字节一致，本仓库未执行
+  双架构完整源码重建。网络或签名错误不等于普通缓存未命中，不应关闭签名校验。
+- 升级在本仓库修改 `llm-agents.url` 的 revision，执行 `nix flake lock`，
+  检查两个架构的缓存和运行结果；依赖本仓库的父 flake 随后更新自己的锁文件。
+  单独运行 `nix flake update llm-agents` 不会推进 URL 中显式固定的 revision。
+
+来源：[Numtide 缓存说明](https://github.com/numtide/llm-agents.nix#binary-cache)、
+[固定版 OMP derivation](https://github.com/numtide/llm-agents.nix/blob/e28ea84e78517e5d05ae0c399da00e848e207261/packages/omp/package.nix)。
 
 ### workstation-base 默认桌面
 

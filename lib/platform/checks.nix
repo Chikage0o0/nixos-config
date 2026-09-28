@@ -359,14 +359,7 @@ let
       homePackageNames = packageNames (homeCfg.home.packages or [ ]);
       homeFiles = homeCfg.home.file or { };
       ompProgramEnabled = homeCfg.programs.omp.enable;
-      usesFirstPartyPackage = homeCfg.programs.omp.package == inputs.omp.packages.${system}.default;
-      usesDeclarativeSettings = homeCfg.programs.omp.settings.startup.quiet or false;
-      ompConfigActivation = homeCfg.home.activation.ompConfig or { };
-      ompConfigActivationData = ompConfigActivation.data or "";
-      usesWritableGeneratedConfig =
-        lib.elem "writeBoundary" (ompConfigActivation.after or [ ])
-        && lib.hasInfix "install -m 600" ompConfigActivationData
-        && lib.hasInfix "omp-config.yml" ompConfigActivationData;
+      cachedOmpInstalled = lib.elem inputs.llm-agents.packages.${system}.omp homeCfg.home.packages;
       standardOmpPaths = [
         ".omp/agent/AGENTS.md"
         ".omp/agent/skills"
@@ -377,9 +370,7 @@ let
       missingOmpFiles = lib.filter (path: !(builtins.hasAttr path homeFiles)) standardOmpPaths;
       passes =
         ompProgramEnabled
-        && usesFirstPartyPackage
-        && usesDeclarativeSettings
-        && usesWritableGeneratedConfig
+        && cachedOmpInstalled
         && lib.elem "omp" homePackageNames
         && homeCfg.programs.zsh.enable
         && lib.elem "rtk" homePackageNames
@@ -389,10 +380,7 @@ let
       {
         pass = if passes then "1" else "0";
         ompProgram = if ompProgramEnabled then "1" else "0";
-        firstPartyPackage = if usesFirstPartyPackage then "1" else "0";
-        declarativeSettings = if usesDeclarativeSettings then "1" else "0";
-        writableGeneratedConfig = if usesWritableGeneratedConfig then "1" else "0";
-        inherit ompConfigActivationData;
+        cachedOmp = if cachedOmpInstalled then "1" else "0";
         packageText = lib.concatStringsSep "," homePackageNames;
         ompInstalled = if lib.elem "omp" homePackageNames then "1" else "0";
         standardOmpFilesInstalled = if ompFilesInstalled then "1" else "0";
@@ -400,10 +388,8 @@ let
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected ai-tooling role to use OMP's first-party Home Manager module and package, standard configuration, shell, and rtk for ${name}." >&2
-          echo "ompProgram=$ompProgram firstPartyPackage=$firstPartyPackage" >&2
-          echo "declarativeSettings=$declarativeSettings writableGeneratedConfig=$writableGeneratedConfig" >&2
-          echo "ompConfigActivationData=$ompConfigActivationData" >&2
+          echo "Expected ai-tooling role to install Numtide's OMP package, standard configuration, shell, and rtk for ${name}." >&2
+          echo "ompProgram=$ompProgram cachedOmp=$cachedOmp" >&2
           echo "omp=$ompInstalled standardOmpFiles=$standardOmpFilesInstalled" >&2
           echo "missingOmpFiles=$missingOmpFilesText" >&2
           echo "packages=$packageText" >&2
