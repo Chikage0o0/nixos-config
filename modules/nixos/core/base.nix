@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -57,17 +58,42 @@ in
   environment.enableAllTerminfo = true;
 
   programs.nix-ld.enable = true;
-  programs.nix-ld.libraries = with pkgs; [
-    stdenv.cc.cc.lib
-    zlib
-    glib
-    openssl
-    curl
-    icu
-    libxml2
-    libuuid
-    ncurses
-  ];
+  programs.nix-ld.libraries =
+    with pkgs;
+    [
+      stdenv.cc.cc.lib
+      zlib
+      glib
+      openssl
+      curl
+      icu
+      libxml2
+      libuuid
+      ncurses
+    ]
+    # Playwright 等工具下载的 Chromium 不带 Nix store 的运行库搜索路径。
+    ++ lib.optionals cfg.development.fullstack.enable [
+      nspr
+      nss
+      atk
+      at-spi2-atk
+      at-spi2-core
+      dbus
+      cups
+      expat
+      libxcb
+      libxkbcommon
+      alsa-lib
+      libgbm
+      libX11
+      libXext
+      cairo
+      pango
+      libXcomposite
+      libXdamage
+      libXfixes
+      libXrandr
+    ];
 
   programs.zsh.enable = true;
   system.stateVersion = cfg.stateVersion;

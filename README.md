@@ -258,6 +258,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
 - OMP、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
 - VS Code 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
+- `fullstack-development` 通过 `nix-ld` 提供 Playwright 等工具下载的 Chromium 所需运行库（包括提供 `libnspr4.so` 的 `nspr`、NSS、图形与音频库），无需启用桌面。修改后需重新构建并切换系统配置；仅安装用户级包不能替代动态库搜索路径配置。
 
 ### Profile 列表
 
