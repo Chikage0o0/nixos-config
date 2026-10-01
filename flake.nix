@@ -29,8 +29,9 @@
 
     # 上游保留配置 Interface，Numtide 提供双架构缓存的源码构建包。
     omp.url = "github:can1357/oh-my-pi/v18.2.10";
-    # 不覆写该输入的 nixpkgs，避免改变已缓存的 derivation。
-    llm-agents.url = "github:numtide/llm-agents.nix/e28ea84e78517e5d05ae0c399da00e848e207261";
+    # 上游没有版本 tag/release，只能跟随 main；不覆写该输入的 nixpkgs，
+    # 避免改变已缓存的 derivation。
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";

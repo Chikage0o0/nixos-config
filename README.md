@@ -341,9 +341,10 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 本仓库统一管理 OMP 的模块和包来源，调用方不需要在父 flake 中声明 OMP 输入、
 注入包集合或添加 Home Manager shared module 来覆盖安装包：
 
-- `inputs.omp` 保留官方 NixOS/Home Manager Interface；`inputs.llm-agents` 固定到
-  [`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix) 的
-  `e28ea84e78517e5d05ae0c399da00e848e207261`，提供 OMP `18.3.2`。
+- `inputs.omp` 保留官方 NixOS/Home Manager Interface；`inputs.llm-agents` 跟随
+  [`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix) 的 `main`
+  分支（上游只有 `assets` 一个 tag，没有版本 tag 或 release，无法跟随发布版本），
+  当前锁定 `83cd3693f5f33071ceb33977f2298c8b40b2aba4`，提供 OMP `18.4.6`。
 - `nixosModules.default` 和 `homeModules.default` 均以 `lib.mkDefault` 选择
   `inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp`，
   覆盖 `x86_64-linux` 与 `aarch64-linux`。独立 Home Manager 消费方也使用同一默认包。
@@ -359,12 +360,13 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
   Nix 可回退到源码构建；源码、依赖需可下载或已在 store 中，并需要足够资源及对应架构
   的本地、远程或模拟 builder。锁定输入可重建不等于已验证逐字节一致，本仓库未执行
   双架构完整源码重建。网络或签名错误不等于普通缓存未命中，不应关闭签名校验。
-- 升级在本仓库修改 `llm-agents.url` 的 revision，执行 `nix flake lock`，
-  检查两个架构的缓存和运行结果；依赖本仓库的父 flake 随后更新自己的锁文件。
-  单独运行 `nix flake update llm-agents` 不会推进 URL 中显式固定的 revision。
+- 升级在本仓库执行 `nix flake update llm-agents`，检查两个架构的缓存和运行结果；
+  依赖本仓库的父 flake 随后执行 `nix flake update <本仓库 input>`——`nix flake lock`
+  不会重新解析已存在的传递输入。跟随 `main` 意味着每次更新都可能引入上游任意提交，
+  发布前必须验证。
 
 来源：[Numtide 缓存说明](https://github.com/numtide/llm-agents.nix#binary-cache)、
-[固定版 OMP derivation](https://github.com/numtide/llm-agents.nix/blob/e28ea84e78517e5d05ae0c399da00e848e207261/packages/omp/package.nix)。
+[OMP derivation](https://github.com/numtide/llm-agents.nix/blob/main/packages/omp/package.nix)。
 
 ### workstation-base 默认桌面
 
