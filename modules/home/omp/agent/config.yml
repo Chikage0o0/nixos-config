@@ -2,15 +2,15 @@ providers:
   webSearchTimeoutSeconds: 60
   openaiWebsockets: "on"
 modelRoles:
-  designer: openai-codex/gpt-6-astra:high
+  designer: anthropic/claude-opus-5-5:high
   smol: openai-codex/gpt-6-luna:high
-  slow: openai-codex/gpt-6-astra:xhigh
-  vision: openai-codex/gpt-5.6-luna:high
+  slow: anthropic/claude-opus-5-5:high
+  vision: openai-codex/gpt-6-luna:high
   tiny: openai-codex/gpt-6-luna:low
-  task: openai-codex/gpt-6-sol:high
-  default: openai-codex/gpt-6-astra:medium
+  default: openai-codex/gpt-6.1-sol:high
   web: openai-codex/gpt-6-luna:high
   image: openai-codex/gpt-image-1
+  task: openai-codex/gpt-6.1-sol:low
 task:
   agentModelOverrides:
     librarian: "@smol"
