@@ -336,6 +336,10 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和默认 `config.yml`。设置 `programs.omp.settings` 后，OMP 官方模块会在 Home Manager activation 中以可写普通文件覆盖默认 `config.yml`，允许 OMP 运行时加锁和改写；下一次 `home-manager switch` 会恢复声明值。其他标准资产仍可由调用方直接声明 `home.file` 覆盖；仓库不再维护第二套 OMP Interface。
 
+标准 skills 位于 `modules/home/omp/agent/skills/`，完整包含 28 个技能及其参考文档、脚本和许可证。更新技能集合时应完整替换目录，删除新集合不再提供的旧技能；当前集合以 `writing-for-agents` 替代 `writing-great-skills`，移除 `batch-grill-me`，新增 `to-questionnaire`、`wait-what` 和 `wizard`。这些文件由仓库管理，`.skill-lock.json` 不保留旧安装器的来源或哈希记录。部署更新后的 Home Manager 配置并重新启动 OMP 后，新集合才会用于正常会话。
+
+若本仓库作为 Git 子模块被父 flake 引用，父仓库的普通 Git flake 评估可能仍使用子模块的已提交快照。验证未提交的修改时，使用 `--override-input <公共输入名> path:<本仓库绝对路径> --no-write-lock-file`；正常部署前需先提交子模块改动并更新父仓库的子模块指针。
+
 #### 包来源、缓存与源码构建
 
 本仓库统一管理 OMP 的模块和包来源，调用方不需要在父 flake 中声明 OMP 输入、
