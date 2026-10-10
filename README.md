@@ -348,8 +348,8 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 - `inputs.omp` 保留官方 NixOS/Home Manager Interface；`inputs.llm-agents` 跟随
   [`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix) 的 `main`
   分支（上游只有 `assets` 一个 tag，没有版本 tag 或 release，无法跟随发布版本），
-  当前锁定 `12eafe09af4dac4755cab458ff535d164966bd53`，提供 OMP
-  [`18.6.1`](https://github.com/can1357/oh-my-pi/releases/tag/v18.6.1)。
+  当前锁定 `77f6f041aa570a0a0883ada4fd44fb1a389bf840`，提供 OMP
+  [`18.8.7`](https://github.com/can1357/oh-my-pi/releases/tag/v18.8.7)。
 - `nixosModules.default` 和 `homeModules.default` 均以 `lib.mkDefault` 选择
   `inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp`，
   覆盖 `x86_64-linux` 与 `aarch64-linux`。独立 Home Manager 消费方也使用同一默认包。
