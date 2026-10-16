@@ -49,13 +49,18 @@
 `machine.boot.grubDevice` 仅用于 BIOS，不能与 extlinux 一起设置。
 U-Boot 位于文件系统以外，普通 NixOS generation 更新不会更新或回滚该区域。
 
-内核源码版本、模块目录版本和 hash 显式固定为 Linux 7.2.6，不跟随
-`linuxPackages_latest` 自动升级。配套固定 Armbian `sunxi-7.0` 补丁与 UWE5622 源码；
+内核源码版本、模块目录版本和 hash 显式固定为 Linux 7.2.11，不跟随
+`linuxPackages_latest` 自动升级。配套固定 Armbian `sunxi-7.2` 补丁与 UWE5622 源码；
 显示设备树补丁复用 7.2 上游已有的 SRAM C 节点，避免创建重叠 SRAM 区域。
 公开模块不含 SSH 身份、代理凭据、HA 实例或 Tailscale 网络策略。
 `pkgs/home-assistant-python-deps.nix` 提供固定 HA 自定义集成依赖，
 调用时传入 `pkgs.home-assistant.python3Packages`；其中 mini-racer wheel 仅支持 aarch64。
 升级内核或依赖锁后需重新构建并在设备验证 SD、以太网、Wi-Fi、蓝牙和 HDMI。
+
+Linux 7.2.11、UWE5622 和 hciattach-opi 已完成从 x86_64 到 aarch64 的交叉构建；
+内核产物为 ARM64 Image，生成了 Zero 3 DTB，三个无线/蓝牙模块的 vermagic 均为
+`7.2.11 SMP preempt mod_unload aarch64`。这不等于完整原生系统或 SD 镜像已构建，
+也不代表通过实机启动、网络和显示验收。
 
 ## 架构设计
 
@@ -173,7 +178,6 @@ nixos-config-public.lib.mkHost {
     "fullstack-development"
     "ai-tooling"
     "container-host"
-    "hermes"
   ];
 }
 ```
@@ -277,7 +281,6 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
 | `ai-tooling`            | OMP AI 助手、RTK 输出压缩与开发 Shell 环境        |
 | `container-host`        | Podman 容器宿主                                    |
-| `hermes`                | Hermes Agent CLI、agent-browser、视频下载、Playwright/Chromium、中文字体和用户级 gateway 服务 |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
 | `remote-admin`          | Cockpit 远程管理面板                              |
 
@@ -313,11 +316,6 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.home.cliTools.enable`                | bool                     | `false`     | 启用现代 CLI 工具                   |
 | `platform.home.rtk.enable`                      | bool                     | `false`     | 安装 RTK CLI，供 AI 工具压缩命令输出 |
 | `platform.home.rtk.package`                     | nullOr package           | `null`      | RTK 包覆盖；null 时使用 `pkgs.rtk`   |
-| `platform.home.hermes.enable`                   | bool                     | `false`     | 启用 Hermes Agent 用户态环境         |
-| `platform.home.hermes.package`                  | nullOr package           | `null`      | Hermes 包；null 时使用官方 flake 默认包 |
-| `platform.home.hermes.extraPackages`            | listOf package           | `[ ]`       | 追加安装到 Hermes 用户环境的额外包   |
-| `platform.home.hermes.service.enable`           | bool                     | `true`      | 声明用户级 Hermes gateway 服务        |
-| `platform.home.hermes.service.extraArgs`        | listOf string            | `[ ]`       | 追加传给 `hermes gateway` 的参数      |
 | `platform.home.sshAgent.enable`                 | bool                     | `true`      | 自动启动 ssh-agent                   |
 | `platform.home.sshAgent.sopsSecrets`            | listOf string            | `[ ]`       | 加载到 ssh-agent 的 sops secret      |
 | `platform.development.fullstack.enable`        | bool                     | `false`     | 启用全栈开发工具包                  |
@@ -348,8 +346,9 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 - `inputs.omp` 保留官方 NixOS/Home Manager Interface；`inputs.llm-agents` 跟随
   [`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix) 的 `main`
   分支（上游只有 `assets` 一个 tag，没有版本 tag 或 release，无法跟随发布版本），
-  当前锁定 `77f6f041aa570a0a0883ada4fd44fb1a389bf840`，提供 OMP
-  [`18.8.7`](https://github.com/can1357/oh-my-pi/releases/tag/v18.8.7)。
+  当前锁定 `b711aa741409cd51bac109375cc6597c8b8f76cc`，提供 OMP `18.11.0`。
+  官方配置 Interface 单独固定为 `v18.11.1`；Numtide 当前尚未提供该版本的包，
+  因此更新到其最新 `main` 不代表 CLI 与官方最新 release 版本相同。
 - `nixosModules.default` 和 `homeModules.default` 均以 `lib.mkDefault` 选择
   `inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp`，
   覆盖 `x86_64-linux` 与 `aarch64-linux`。独立 Home Manager 消费方也使用同一默认包。
@@ -396,57 +395,6 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 ---
 
 ## 高级用法
-
-### Hermes Agent 用户级服务
-
-启用 `hermes` role 后，主用户会获得 Hermes CLI、nixpkgs 提供的 `agent-browser`、`yt-dlp`、`streamlink`、`playwright`、`playwright-mcp`、Chromium、Playwright browsers、中文/CJK/emoji 字体、较完整的 Python/Node/构建/媒体/搜索依赖，以及用户级 `hermes-agent.service`。本仓库不管理 `~/.hermes/config.yaml` 或 `~/.hermes/.env`，provider token 和 gateway token 仍由用户通过 Hermes CLI 写入自己的 home 目录。
-
-```nix
-public.lib.mkHost {
-  hostname = "ai-workstation";
-  system = "x86_64-linux";
-  user = commonUser;
-  profiles = [ "workstation-base" ];
-  roles = [
-    "development"
-    "ai-tooling"
-    "hermes"
-  ];
-}
-```
-
-首次部署后先配置 Hermes：
-
-```bash
-hermes setup
-```
-
-配置完成后启动 gateway：
-
-```bash
-systemctl --user start hermes-agent.service
-```
-
-如需随用户会话自动启动：
-
-```bash
-systemctl --user enable hermes-agent.service
-```
-
-查看日志：
-
-```bash
-journalctl --user -u hermes-agent.service -f
-```
-
-常用工具检查：
-
-```bash
-agent-browser --version
-yt-dlp --version
-playwright --version
-chromium --version
-```
 
 ### 物理机 + NVIDIA
 
@@ -528,7 +476,6 @@ nixos-config/
 │   │   ├── shell/         # Zsh + Starship
 │   │   ├── development/   # CLI 开发包与桌面 fullstack GUI 包门控
 │   │   ├── omp/           # Oh My Pi AI 助手与标准 agent 配置
-│   │   ├── hermes/        # Hermes Agent、agent-browser、浏览器自动化与 gateway 服务
 │   │   └── desktop/       # Kitty 与 mpv 桌面用户配置
 │   └── shared/
 │       └── options.nix    # platform 选项定义

@@ -9,10 +9,10 @@ let
   armbianBuild = pkgs.fetchFromGitHub {
     owner = "armbian";
     repo = "build";
-    rev = "8b778f3d82fb8dcfb3d663187de890a3700c8ee2";
-    hash = "sha256-rVX7uIRb4nOLxWcQ6iH4e3Qs9PhYabuVmFv5v9Uvo/Q=";
+    rev = "f8263f6b7820a8702626fa9c35104e77ae581215";
+    hash = "sha256-Zx9dl6eojLjeQ0TTex+yO0b9F4GLgvjGU2W5Vr1xnno=";
   };
-  patchRoot = "${armbianBuild}/patch/kernel/archive/sunxi-7.0";
+  patchRoot = "${armbianBuild}/patch/kernel/archive/sunxi-7.2";
   # 保留内核自身的 override 接口，供 NixOS 注入 features/kernelPatches 等参数。
   pinnedKernel = import ../../../pkgs/linux-orangepi-zero3 {
     inherit (pkgs) fetchurl;
@@ -22,17 +22,36 @@ let
     name = baseNameOf path;
     patch = "${patchRoot}/${path}";
   };
-  # 7.2 已定义完整 SRAM C 区域；复用上游节点，避免重复插入重叠的 sram-section@0。
-  displayPipelinePatch =
-    pkgs.runCommand "sunxi-display-pipeline-linux-7.2.patch"
+  # Armbian 的上下文包含未选用的 p-boot 显示接管补丁；不引入无关功能。
+  displayBindingsPatch =
+    pkgs.runCommand "sunxi-display-bindings-linux-7.2.patch"
       {
         nativeBuildInputs = [ pkgs.patchutils ];
       }
       ''
-        filterdiff --hunks=1-3,5 \
-          "${patchRoot}/patches.drm/0042-arm64-dts-allwinner-h616-Add-display-pipeline.patch" \
-          > "$out"
-        substituteInPlace "$out" --replace-fail '<&de3_sram 1>' '<&sram_c 1>'
+        cp "${patchRoot}/patches.drm/0039-drm-sun4i-switch-DE33-to-new-bindings.patch" bindings.patch
+        substituteInPlace bindings.patch \
+          --replace-fail $' #include "sun4i_tcon.h"\n' "" \
+          --replace-fail $' \tstruct sun4i_drv\t\t*drv;\n \tbool\t\t\t\thw_preconfigured;\n' "" \
+          --replace-fail $'-- \nArmbian\n\n' ""
+        # recountdiff 会把邮件签名中的 "-- " 误计为最后一个 hunk 的删除行。
+        recountdiff bindings.patch > "$out"
+      '';
+  # 仅移除 A64 LCD、gamma 和 p-boot 补丁带来的上下文，保留 H616 TV 实际改动。
+  displayTconPatch =
+    pkgs.runCommand "sunxi-display-tcon-linux-7.2.patch"
+      {
+        nativeBuildInputs = [ pkgs.patchutils ];
+      }
+      ''
+        cp "${patchRoot}/patches.drm/0043-drm-sun4i-Add-H616-TCON-TV-support.patch" tcon.patch
+        substituteInPlace tcon.patch \
+          --replace-fail $' \t{ .compatible = "allwinner,sun50i-a64-tcon-lcd", .data = &sun50i_a64_lcd_quirks },\n' "" \
+          --replace-fail $' #define SUN4I_TCON_GCTL_GAMMA_ENABLE\t\t\tBIT(30)\n' "" \
+          --replace-fail $' \tbool\trestores_rate;   /* restores the initial rate when rate changes */\n' "" \
+          --replace-fail $' \tbool\tvblank_delay;\t/* delay page flip reporting for 250us (TCON report vblank\n \t\t\t\t   shortly before register flip) */\n' "" \
+          --replace-fail $'-- \nArmbian\n\n' ""
+        recountdiff tcon.patch > "$out"
       '';
   # Armbian 的补丁假定已应用无关的 modem-power 补丁；只调整过期的 Makefile 片段。
   addrMgtPatch =
@@ -86,25 +105,36 @@ in
     # HDMI 和 AW859A 尚未进入主线，保留固定 Armbian 补丁集中兼容的部分。
     kernelPatches =
       map kernelPatch [
-        "patches.drm/0032-drm-sun4i-Add-support-for-DE33-CSC.patch"
-        "patches.drm/0033-drm-sun4i-vi_layer-Limit-formats-for-DE33.patch"
-        "patches.drm/0034-clk-sunxi-ng-de2-Export-register-regmap-for-DE33.patch"
-        "patches.drm/0035-dt-bindings-display-allwinner-Add-DE33-planes.patch"
-        "patches.drm/0036-drm-sun4i-Add-planes-driver.patch"
-        "patches.drm/0037-dt-bindings-display-allwinner-Update-H616-DE33-bindi.patch"
-        "patches.drm/0038-drm-sun4i-switch-DE33-to-new-bindings.patch"
-        "patches.drm/0039-drm-sun4i-Add-H616-TCON-TV-support.patch"
-        "patches.drm/0040-srm-sun4i-Add-support-for-H616-HDMI-PHY.patch"
-        "patches.drm/0041-drm-sun4i-Add-compatible-for-H616-display-engine.patch"
+        "patches.drm/0032-clk-sunxi-ng-de2-Fix-Display-Engine-3.3-definitions.patch"
+        "patches.drm/0033-drm-sun4i-Add-support-for-DE33-CSC.patch"
+        "patches.drm/0034-drm-sun4i-vi_layer-Limit-formats-for-DE33.patch"
+        "patches.drm/0035-clk-sunxi-ng-de2-Export-register-regmap-for-DE33.patch"
+        "patches.drm/0036-dt-bindings-display-allwinner-Add-DE33-planes.patch"
+        "patches.drm/0037-drm-sun4i-Add-planes-driver.patch"
+        "patches.drm/0038-dt-bindings-display-allwinner-Split-H616-DE33-layer-.patch"
       ]
       ++ [
         {
-          name = "sunxi-display-pipeline-linux-7.2.patch";
-          patch = displayPipelinePatch;
+          name = "sunxi-display-bindings-linux-7.2.patch";
+          patch = displayBindingsPatch;
         }
       ]
       ++ map kernelPatch [
-        "patches.drm/0043-arm64-dts-allwinner-h616-Enable-HDMI-on-several-boar.patch"
+        "patches.drm/0040-dt-bindings-display-Add-H616-display-engine-compatib.patch"
+        "patches.drm/0041-drm-sun4i-Add-support-for-H616-TCON-TOP.patch"
+        "patches.drm/0042-drm-sun4i-tcon-Add-support-for-R40-LCD.patch"
+      ]
+      ++ [
+        {
+          name = "sunxi-display-tcon-linux-7.2.patch";
+          patch = displayTconPatch;
+        }
+      ]
+      ++ map kernelPatch [
+        "patches.drm/0044-drm-sun4i-Add-support-for-H616-HDMI-PHY.patch"
+        "patches.drm/0045-drm-sun4i-Add-compatible-for-H616-display-engine.patch"
+        "patches.drm/0046-arm64-dts-allwinner-h616-Add-display-pipeline.patch"
+        "patches.drm/0047-arm64-dts-allwinner-h616-Enable-HDMI-on-several-boar.patch"
         "patches.armbian/arm64-dts-sun50i-h616-orangepi-zero2-enable-usb1-vbus.patch"
         "patches.armbian/arm64-dts-sun50i-h616-orangepi-zero2-zero3-add-wifi.patch"
         "patches.armbian/drv-nvmem-sunxi-add-chipid-serial-helpers.patch"
@@ -126,8 +156,8 @@ in
           structuredExtraConfig = with lib.kernel; {
             DRM_SUN4I = yes;
             DRM_SUN8I_DW_HDMI = yes;
+            # 新版 DE33 planes 已直接链接到 mixer，不再有独立的 Kconfig 选项。
             DRM_SUN8I_MIXER = yes;
-            DRM_SUN50I_PLANES = yes;
             SUNXI_ADDR_MGT = module;
             NVMEM_SUNXI_SID = yes;
             # Panfrost 的内建消费者探测前必须存在 H616 电源域。

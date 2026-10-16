@@ -11,12 +11,12 @@ in
 {
   mideaLan = ps.buildPythonPackage {
     pname = "midea-lan";
-    version = "2026.9.1";
+    version = "2026.9.2";
     format = "wheel";
 
     src = fetchurl {
-      url = "https://files.pythonhosted.org/packages/ab/a1/8bc10e0834dd8ba46d0208663fff4f5bf9cdfb8596cffdf6c592f14d071a/midea_lan-2026.9.1-py3-none-any.whl";
-      hash = "sha256-NzB/f+Fw8GPsLvmjAhYZ8w1dKUWlZ5l7w8fdZsyhyPs=";
+      url = "https://files.pythonhosted.org/packages/44/28/075d3bdc125f111e6d1cb676f4e5a923488df02a069642d30fb225c5afc6/midea_lan-2026.9.2-py3-none-any.whl";
+      hash = "sha256-zg2hJlzDiud6AvGMJpk+HeMs0ymCV22sg0uUpBxV2uE=";
     };
 
     dependencies = with ps; [
@@ -24,7 +24,6 @@ in
       aiohttp
       colorlog
       defusedxml
-      deprecated
       ifaddr
       platformdirs
       pycryptodome

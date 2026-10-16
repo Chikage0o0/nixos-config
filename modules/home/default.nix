@@ -11,7 +11,6 @@
     ./development/mirrors.nix
     ./rtk
     ./omp
-    ./hermes
     ./desktop
   ];
 }

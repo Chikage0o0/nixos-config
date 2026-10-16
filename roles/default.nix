@@ -8,5 +8,4 @@
   gpu-amd = ./gpu-amd.nix;
   gpu-nvidia = ./gpu-nvidia.nix;
   ai-accelerated = ./ai-accelerated.nix;
-  hermes = ./hermes.nix;
 }

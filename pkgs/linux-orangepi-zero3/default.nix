@@ -4,11 +4,11 @@
 }:
 (linux.override {
   argsOverride = {
-    version = "7.2.6";
-    modDirVersion = "7.2.6";
+    version = "7.2.11";
+    modDirVersion = "7.2.11";
     src = fetchurl {
-      url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.6.tar.xz";
-      hash = "sha256-A5rvhPKwmUrto/T8/D0C7J16m7uQIOomTEP0Rshg9gY=";
+      url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.11.tar.xz";
+      hash = "sha256-/Q/EefmDqMBTE/E+nDYzD+ZlHPclOWdIxA1c2T+h5qQ=";
     };
     extraMeta.branch = "7.2";
   };

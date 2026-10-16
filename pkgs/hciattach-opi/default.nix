@@ -5,13 +5,13 @@
 }:
 stdenv.mkDerivation {
   pname = "hciattach-opi";
-  version = "0-unstable-2026-06-29";
+  version = "0-unstable-2026-09-28";
 
   src = fetchFromGitHub {
     owner = "orangepi-xunlong";
     repo = "orangepi-build";
-    rev = "bdba421984211da19191dc6ac6818a247817335f";
-    hash = "sha256-E/5bSALLlMK0e6YqZv1pvcPhXtwC7s8INNqmVr1pBgc=";
+    rev = "a95129bf30ea11886cc35f08ebb3e69695a26656";
+    hash = "sha256-ns3shf+Emh2JnT+B4niGAAwGgqTM8YPuhDYflkv9Nwg=";
   };
 
   patches = [ ./guard-missing-bt-address.patch ];

@@ -200,50 +200,6 @@ let
         touch $out
       '';
 
-  mkHermesCustomDependenciesCheck =
-    system: name: host:
-    let
-      pkgs = inputs.nixpkgs.legacyPackages.${system};
-      config = self.lib.mkHost (host // { inherit system; });
-      homeCfg = config.config.home-manager.users.${host.user.name};
-      service = homeCfg.systemd.user.services.hermes-agent or { };
-      execStartValue = service.Service.ExecStart or "MISSING";
-      execStart =
-        if builtins.isList execStartValue then lib.concatStringsSep " " execStartValue else execStartValue;
-      homePackages = homeCfg.home.packages or [ ];
-      packages = packageNames homePackages;
-      hermesPackages = builtins.filter (pkg: lib.getName pkg == "hermes-agent") homePackages;
-      hermesPackage = if hermesPackages == [ ] then null else builtins.head hermesPackages;
-      hermesPython =
-        if hermesPackage != null && hermesPackage ? hermesVenv then
-          "${hermesPackage.hermesVenv}/bin/python3"
-        else
-          "MISSING";
-      passes =
-        builtins.hasAttr "hermes-agent" homeCfg.systemd.user.services
-        && lib.hasInfix "/bin/hermes gateway" execStart
-        && lib.elem "hermes-agent" packages
-        && lib.elem "agent-browser" packages
-        && hermesPython != "MISSING";
-    in
-    pkgs.runCommand "${name}-hermes-custom-dependencies"
-      {
-        pass = if passes then "1" else "0";
-        inherit execStart;
-        inherit hermesPython;
-        packageText = lib.concatStringsSep "," packages;
-      }
-      ''
-        if [[ "$pass" != 1 ]]; then
-          echo "Expected Hermes to include agent-browser and evaluate with custom runtime dependencies for ${name}." >&2
-          echo "execStart=$execStart" >&2
-          echo "packages=$packageText" >&2
-          exit 1
-        fi
-        "$hermesPython" -c 'import lark_oapi'
-        touch $out
-      '';
-
   packageNames = packages: map lib.getName packages;
 
   mkChineseSupportCheck =
@@ -549,7 +505,6 @@ let
         "fullstack-development"
         "ai-tooling"
         "container-host"
-        "hermes"
       ];
       machine.wsl.enable = true;
       extraModules = base.extraModules ++ [
@@ -561,7 +516,6 @@ let
           ];
         }
       ];
-      home.hermes.extraDependencyGroups = [ "feishu" ];
     };
 
     example-server = base // {
@@ -768,10 +722,6 @@ lib.genAttrs systems (
           ];
           extraFontPackages = [ "nerd-fonts-fira-code" ];
         };
-
-    example-wsl-dev-container-hermes-custom-dependencies =
-      mkHermesCustomDependenciesCheck system "example-wsl-dev-container"
-        hosts.example-wsl-dev-container;
 
     example-wsl-dev-container-ai-tooling-dependencies =
       mkAiToolingDependenciesCheck system "example-wsl-dev-container"
