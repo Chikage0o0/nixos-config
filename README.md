@@ -227,7 +227,7 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | ----------------------- | ------------------------------------------------- |
 | `development`           | 基础开发工具链                                    |
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
-| `ai-tooling`            | OMP AI 助手、RTK 输出压缩与开发 Shell 环境        |
+| `ai-tooling`            | OMP AI 助手、Orca 常驻服务、RTK 输出压缩与开发 Shell 环境 |
 | `container-host`        | Podman 容器宿主                                    |
 | `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
 | `remote-admin`          | Cockpit 远程管理面板                              |
@@ -319,6 +319,64 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 来源：[Numtide 缓存说明](https://github.com/numtide/llm-agents.nix#binary-cache)、
 [OMP derivation](https://github.com/numtide/llm-agents.nix/blob/main/packages/omp/package.nix)。
+
+### Orca 常驻服务
+
+公共 NixOS 模块提供 `services.orca-server`，模块本身默认关闭，
+`ai-tooling` role 通过 `lib.mkDefault true` 默认启用，无需主机单独开启。
+主机可用普通赋值 `services.orca-server.enable = false;` 禁用。
+公共 flake 已将
+[`numtide/llm-agents.nix`](https://github.com/numtide/llm-agents.nix)
+对应平台的 `packages.${system}.orca` 注入 `services.orca-server.package`；
+单独导入服务文件时需自行提供该包。这里使用完整 Orca 包和官方推荐的
+`orca serve --supervise`，不是精简的 server-only daemon。
+
+```nix
+{
+  services.orca-server = {
+    # ai-tooling 已默认启用；其他 role 按需设置 enable = true。
+    # package 由公共 flake 注入 llm-agents.packages.${system}.orca。
+    user = "chikage"; # 默认 config.platform.user.name
+    port = 6768; # 默认值
+  };
+}
+```
+
+`user` 必须是 `users.users` 中已声明且有独立 home 的非 root 用户。
+服务以该用户运行，等待 home 挂载，工作目录及 `HOME` 均使用其配置的 home，
+`ORCA_USER_DATA_PATH` 为 `${home}/.orca`，复用已有 Orca 数据。
+系统单元只配置静态工具路径，不自动读取交互 shell 环境或其中的机密。
+模块不开放防火墙、不修改认证，也不绕过沙箱；是否允许远程访问由主机另行决定。
+
+部署后检查系统单元与日志：
+
+```bash
+systemctl status orca-server.service
+journalctl -u orca-server.service -b --no-pager
+```
+
+在私有 flake 根目录获取服务使用的准确包路径，再以服务用户运行 CLI，
+避免误用其他版本或 root 的数据目录（替换主机名及用户名）：
+
+```bash
+orca_package=$(nix eval --raw \
+  .#nixosConfigurations.chikage-homeserver.config.services.orca-server.package.outPath)
+orca_data=$(nix eval --raw \
+  .#nixosConfigurations.chikage-homeserver.config.systemd.services.orca-server.environment.ORCA_USER_DATA_PATH)
+sudo -H -u chikage "$orca_package/bin/orca" --version
+sudo -H -u chikage env ORCA_USER_DATA_PATH="$orca_data" "$orca_package/bin/orca" status --json
+```
+
+服务显式复用 `~/.orca`；CLI 的原生默认数据目录可能不同，管理此服务时必须指定相同
+`ORCA_USER_DATA_PATH`，不要把另一个数据目录的 `not_running` 当成服务故障。
+`orca status --json` 用于检查实际 runtime；应确认 `result.runtime.state = "ready"`、
+`result.runtime.reachable = true`，不能只看顶层 `ok` 或 systemd 单元状态。
+服务启动到网络端口就绪之间存在初始化阶段。
+此模块管理的是系统单元，不使用 Orca 自注册的 service 管理命令。
+服务始终带 `--no-pairing`，防止自动输出含 token 的配对链接到 journal。
+需要配对时，须以同一用户在受信任的交互终端显式另行操作，参照
+[官方 CLI 文档](https://www.onorca.dev/docs/cli/reference)；不要把配对链接或明文
+token 写入 Nix 配置、公共文档或日志。
 
 ### workstation-base 默认桌面
 

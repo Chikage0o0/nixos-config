@@ -67,6 +67,9 @@
             programs.omp.package =
               lib.mkDefault
                 inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
+            services.orca-server.package =
+              lib.mkDefault
+                inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.orca;
             nixpkgs.overlays = [ self.overlays.default ];
           };
         profiles = import ./profiles;
