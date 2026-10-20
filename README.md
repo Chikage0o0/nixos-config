@@ -282,7 +282,18 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和默认 `config.yml`。设置 `programs.omp.settings` 后，OMP 官方模块会在 Home Manager activation 中以可写普通文件覆盖默认 `config.yml`，允许 OMP 运行时加锁和改写；下一次 `home-manager switch` 会恢复声明值。其他标准资产仍可由调用方直接声明 `home.file` 覆盖；仓库不再维护第二套 OMP Interface。
 
-标准 skills 位于 `modules/home/omp/agent/skills/`，完整包含 28 个技能及其参考文档、脚本和许可证。更新技能集合时应完整替换目录，删除新集合不再提供的旧技能；这些文件由仓库管理，`.skill-lock.json` 不保留旧安装器的来源或哈希记录。部署更新后的 Home Manager 配置并重新启动 OMP 后，新集合才会用于正常会话。
+标准 skills 位于 `modules/home/omp/agent/skills/`，包含 30 个技能及其参考文档、脚本和许可证。当前集合由以下固定快照组成：
+
+| 来源 | 范围 | 固定版本 |
+|---|---|---|
+| [Matt Pocock](https://github.com/mattpocock/skills) | `engineering`、`productivity` 两组，共 27 个技能 | [`v1.3.1` / `24fe0ef7737efae15c87225755e9f6f5965e4888`](https://github.com/mattpocock/skills/tree/24fe0ef7737efae15c87225755e9f6f5965e4888/skills) |
+| [Anthropic](https://github.com/anthropics/skills) | `frontend-design` | [`dbd4588f9e1033efb41dad4bef2f7947c8993d44`](https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design) |
+| [Cloudflare](https://github.com/cloudflare/skills) | `web-perf` | [`86505e44f87d801aa1864a3c4109e9a8ae5c409f`](https://github.com/cloudflare/skills/tree/86505e44f87d801aa1864a3c4109e9a8ae5c409f/skills/web-perf) |
+| [Jakub Krehel](https://github.com/jakubkrehel/make-interfaces-feel-better) | `make-interfaces-feel-better` | [`35545ea1512ad59fa463e6b1f95ca9c052981fe6`](https://github.com/jakubkrehel/make-interfaces-feel-better/tree/35545ea1512ad59fa463e6b1f95ca9c052981fe6/skills/make-interfaces-feel-better) |
+
+Matt Pocock 的技能仅做 OMP 调用方式适配：模型通过 `read` 读取 `skill://<name>`，用户通过 `/skill:<name>` 调用；保留上游的 `disable-model-invocation` 边界。MIT 许可保存在 `skills/MATT-POCOCK-LICENSE.txt`。`v1.3.1` 新增 `implement-spec`、`pr`、`retro`，移除 `resolving-merge-conflicts`，并将领域词汇表约定从 `CONTEXT.md` / `CONTEXT-MAP.md` 改为 `GLOSSARY.md` / `GLOSSARY-MAP.md`；已有词汇表需随使用该集合的项目迁移。
+
+更新技能集合时应完整替换对应来源的目录，删除新集合不再提供的旧技能，保留其他来源的技能，并重新应用上述 OMP 适配、同步来源版本和许可证。这些文件由仓库管理，`.skill-lock.json` 保持空的 v3 安装器记录，不承担版本追踪；来源版本以上表为准。部署更新后的 Home Manager 配置并重新启动 OMP 后，新集合才会用于正常会话。
 
 若本仓库作为 Git 子模块被父 flake 引用，父仓库的普通 Git flake 评估可能仍使用子模块的已提交快照。验证未提交的修改时，使用 `--override-input <公共输入名> path:<本仓库绝对路径> --no-write-lock-file`；正常部署前需先提交子模块改动并更新父仓库的子模块指针。
 
