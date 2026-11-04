@@ -1,6 +1,5 @@
 { lib, ... }:
 {
-  services.orca-server.enable = lib.mkDefault true;
   home-manager.sharedModules = [
     {
       programs.omp.enable = lib.mkDefault true;

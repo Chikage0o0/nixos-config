@@ -9,7 +9,6 @@
     ./networking/base.nix
     ./services/cockpit.nix
     ./services/openssh.nix
-    ./services/orca-server.nix
     ./hardware/intel.nix
     ./hardware/amd.nix
     ./hardware/nvidia.nix
