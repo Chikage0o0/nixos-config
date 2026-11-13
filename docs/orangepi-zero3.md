@@ -28,7 +28,9 @@
 ```
 
 以上是主机声明片段，仍需提供 `hostname` 和 `user`。镜像通过
-`config.system.build.sdImage` 构建。日常受管配置不必导入 image 模块，
+`config.system.build.sdImage` 构建。固定 H618/SD 启动链不启用 SD 模板的全硬件 initrd profile，
+使用板级 MMC 和默认文件系统驱动；其他设备仍可在进入根文件系统后加载模块。
+日常受管配置不必导入 image 模块，
 但必须保留根挂载（默认 `/dev/disk/by-label/NIXOS_SD`、ext4）和
 `machine.boot.mode = "extlinux"`；首次分区扩容由镜像启动服务执行。
 
@@ -41,9 +43,11 @@ U-Boot 位于文件系统以外，普通 NixOS generation 更新不会更新或�
 
 ## 内核与驱动固定
 
-内核源码版本、模块目录版本和 hash 显式固定为 Linux 7.2.11，不跟随
-`linuxPackages_latest` 自动升级。配套固定 Armbian `sunxi-7.2` 补丁与 UWE5622 源码；
-显示设备树补丁复用 7.2 上游已有的 SRAM C 节点，避免创建重叠 SRAM 区域。
+内核源码、模块目录和 hash 固定为 Linux 7.3.4，基于 `linuxPackages_7_3`，
+不跟随 `linuxPackages_latest` 自动升级。板级补丁选自 Armbian build
+`99bc323758a9448dc1a5274d6aaaca32769fef76` 的 `sunxi-7.3` 栈，仅引入所需显示、
+Wi-Fi、蓝牙和地址管理支持，不引入 p-boot；UWE5622 固定到
+`6a6387247c12bf6f0f5c1ed7da8b782623a74ea0`。保留三单元 GPIO 的 MMC reset 回退。
 公开模块不含 SSH 身份、代理凭据、HA 实例或 Tailscale 网络策略。
 `pkgs/home-assistant-python-deps.nix` 提供固定 HA 自定义集成依赖，
 调用时传入 `pkgs.home-assistant.python3Packages`；其中 mini-racer wheel 仅支持 aarch64。
@@ -56,7 +60,9 @@ U-Boot 位于文件系统以外，普通 NixOS generation 更新不会更新或�
 
 ## 支持状态
 
-- Linux 7.2.11、UWE5622 和 hciattach-opi 已完成从 x86_64 到 aarch64 的交叉构建：
-  内核产物为 ARM64 Image，已生成 Zero 3 DTB，三个无线/蓝牙模块的 vermagic 均为
-  `7.2.11 SMP preempt mod_unload aarch64`。
-- 完整 SD 镜像构建与实机启动、Wi-Fi、蓝牙、HDMI 验收尚未完成；交叉构建通过不等于实机可用。
+- Linux 7.3.4 和固定版本 UWE5622 已完成从 x86_64 到 aarch64 的交叉构建；
+  已核对实际内核配置中的 Rust、FORTIFY、MMC、GMAC、显示及地址管理支持，以及模块的 ARM64 ELF 和 7.3.4 vermagic。
+- 最终 DTB 已检查 phandle 唯一性、显示端点互相引用和 Wi-Fi reset GPIO provider；这些检查不能代替实体外设验收。
+- 调用方已构建完整受管系统和首次 SD 镜像，并离线核对 MBR、SPL 位置、extlinux 默认目标，以及镜像内 kernel、initrd 和最终 DTB 与目标产物的哈希一致性。
+- 升级需重新构建日常系统及首次 SD 镜像；构建通过不等于实机可用。部署后仍需在设备上
+  验证启动、SD、以太网、Wi-Fi、蓝牙和 HDMI；U-Boot 区域不随系统 generation 更新。

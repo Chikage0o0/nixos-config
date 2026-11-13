@@ -7,13 +7,13 @@
 }:
 stdenv.mkDerivation {
   pname = "uwe5622";
-  version = "0-unstable-2026-10-13-${kernel.version}";
+  version = "0-unstable-2026-11-09-${kernel.version}";
 
   src = fetchFromGitHub {
     owner = "armbian";
     repo = "uwe5622";
-    rev = "fa9d1a6703a93a85bcf68e865ebc2726474076ad";
-    hash = "sha256-kbv1O0qPKnUGSrv4B+nq1YZcYZPOziWAeLw2aOkFhPA=";
+    rev = "6a6387247c12bf6f0f5c1ed7da8b782623a74ea0";
+    hash = "sha256-qLDlI/Unu12ysxeIwT3nQLle2p9VLtAuKgFMhn2Z7d0=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;

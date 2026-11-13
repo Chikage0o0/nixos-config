@@ -8,6 +8,9 @@
 {
   imports = [ "${modulesPath}/installer/sd-card/sd-image.nix" ];
 
+  # 固定 H618/SD 启动链使用板级模块声明的驱动，不把通用 PC/其他开发板驱动装进 initrd。
+  hardware.enableAllHardware = lib.mkForce false;
+
   image.baseName = "nixos-orangepi-zero3";
   image.extension = lib.mkForce "img.xz";
 

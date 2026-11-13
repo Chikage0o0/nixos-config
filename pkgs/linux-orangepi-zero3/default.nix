@@ -4,13 +4,13 @@
 }:
 (linux.override {
   argsOverride = {
-    version = "7.2.11";
-    modDirVersion = "7.2.11";
+    version = "7.3.4";
+    modDirVersion = "7.3.4";
     src = fetchurl {
-      url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.11.tar.xz";
-      hash = "sha256-/Q/EefmDqMBTE/E+nDYzD+ZlHPclOWdIxA1c2T+h5qQ=";
+      url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.3.4.tar.xz";
+      hash = "sha256-sRtt+Clejpkf8EC3GqpJlKi1XKojtrCSkH8ZW1hA/R8=";
     };
-    extraMeta.branch = "7.2";
+    extraMeta.branch = "7.3";
   };
 }).overrideAttrs
   (old: {

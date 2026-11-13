@@ -9,14 +9,14 @@ let
   armbianBuild = pkgs.fetchFromGitHub {
     owner = "armbian";
     repo = "build";
-    rev = "f8263f6b7820a8702626fa9c35104e77ae581215";
-    hash = "sha256-Zx9dl6eojLjeQ0TTex+yO0b9F4GLgvjGU2W5Vr1xnno=";
+    rev = "99bc323758a9448dc1a5274d6aaaca32769fef76";
+    hash = "sha256-LFWUmoyiteqaJVRdPy8zzpyLHlPu9xcO/ZZtFJWD0hQ=";
   };
-  patchRoot = "${armbianBuild}/patch/kernel/archive/sunxi-7.2";
+  patchRoot = "${armbianBuild}/patch/kernel/archive/sunxi-7.3";
   # 保留内核自身的 override 接口，供 NixOS 注入 features/kernelPatches 等参数。
   pinnedKernel = import ../../../pkgs/linux-orangepi-zero3 {
     inherit (pkgs) fetchurl;
-    linux = pkgs.linuxPackages_7_2.kernel;
+    linux = pkgs.linuxPackages_7_3.kernel;
   };
   kernelPatch = path: {
     name = baseNameOf path;
@@ -24,7 +24,7 @@ let
   };
   # Armbian 的上下文包含未选用的 p-boot 显示接管补丁；不引入无关功能。
   displayBindingsPatch =
-    pkgs.runCommand "sunxi-display-bindings-linux-7.2.patch"
+    pkgs.runCommand "sunxi-display-bindings-linux-7.3.patch"
       {
         nativeBuildInputs = [ pkgs.patchutils ];
       }
@@ -39,7 +39,7 @@ let
       '';
   # 仅移除 A64 LCD、gamma 和 p-boot 补丁带来的上下文，保留 H616 TV 实际改动。
   displayTconPatch =
-    pkgs.runCommand "sunxi-display-tcon-linux-7.2.patch"
+    pkgs.runCommand "sunxi-display-tcon-linux-7.3.patch"
       {
         nativeBuildInputs = [ pkgs.patchutils ];
       }
@@ -62,16 +62,18 @@ let
       ''
             filterdiff -x 'a/drivers/misc/Makefile' \
               "${patchRoot}/patches.armbian/drv-misc-sunxi-add-addr-mgt-driver-uwe5622.patch" \
-              > "$out"
-            cat >> "$out" <<'PATCH'
+              > addr.patch
+            substituteInPlace addr.patch --replace $'-- \nArmbian\n\n' ""
+            cat >> addr.patch <<'PATCH'
         diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
         --- a/drivers/misc/Makefile
         +++ b/drivers/misc/Makefile
-        @@ -75,3 +75,4 @@ obj-y				+= keba/
-         obj-y				+= amd-sbi/
+        @@ -73,2 +73,3 @@
          obj-$(CONFIG_MISC_RP1)		+= rp1/
+         obj-$(CONFIG_INTEL_SSEI)	+= issei/
         +obj-$(CONFIG_SUNXI_ADDR_MGT)	+= sunxi-addr/
         PATCH
+            recountdiff addr.patch > "$out"
       '';
   uwe5622 = config.boot.kernelPackages.callPackage ../../../pkgs/uwe5622 { };
   hciattachOpi = pkgs.callPackage ../../../pkgs/hciattach-opi { };
@@ -101,7 +103,7 @@ in
   boot = {
     kernelPackages = lib.mkForce (pkgs.linuxPackagesFor pinnedKernel);
 
-    # Linux 7.2 已包含 Zero 3 的 CPU、SD 与 GMAC 设备树支持。
+    # Linux 7.3 已包含 Zero 3 的 CPU、SD 与 GMAC 设备树支持。
     # HDMI 和 AW859A 尚未进入主线，保留固定 Armbian 补丁集中兼容的部分。
     kernelPatches =
       map kernelPatch [
@@ -115,7 +117,7 @@ in
       ]
       ++ [
         {
-          name = "sunxi-display-bindings-linux-7.2.patch";
+          name = "sunxi-display-bindings-linux-7.3.patch";
           patch = displayBindingsPatch;
         }
       ]
@@ -126,7 +128,7 @@ in
       ]
       ++ [
         {
-          name = "sunxi-display-tcon-linux-7.2.patch";
+          name = "sunxi-display-tcon-linux-7.3.patch";
           patch = displayTconPatch;
         }
       ]
