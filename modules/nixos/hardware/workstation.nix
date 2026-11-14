@@ -11,10 +11,7 @@ in
   config = lib.mkMerge [
     {
       hardware.enableRedistributableFirmware = lib.mkDefault true;
-      hardware.graphics = {
-        enable = lib.mkDefault true;
-        enable32Bit = lib.mkDefault true;
-      };
+      hardware.graphics.enable32Bit = lib.mkDefault true;
     }
 
     (lib.mkIf pkgs.stdenv.hostPlatform.isx86_64 {

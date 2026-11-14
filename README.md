@@ -208,6 +208,8 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 - **profile** 只描述机器形态：`wsl-base`、`workstation-base`、`server-base`、`generic-linux`。
 - `workstation-base` 默认启用 KDE Plasma 6 日常桌面；主机可通过更高优先级关闭 `platform.desktop.enable` 或 `platform.desktop.apps.enable`。
+- 公共 GPU 模块只在 `platform.machine.gpu.intel.enable`、`platform.machine.gpu.amd.enable` 或 `platform.machine.gpu.nvidia.enable` 开启时进入对应厂商配置。仅声明 Intel/AMD CPU、选择 server/generic profile 或关闭桌面，不会由这些模块主动注册图形驱动。Intel/AMD 的非 WSL 配置默认开启 `hardware.graphics.enable`，通过标准 `/run/opengl-driver` 注册 Mesa，并加载已配置的对应用户态组件；主机显式设置 `hardware.graphics.enable = false` 可覆盖这个默认。NVIDIA 沿用既有专有驱动策略。它们不绑定 GPU 或修改 PCI 归属；桌面和主机直接配置的图形依赖仍遵循 NixOS 自身规则。
+- 图形驱动注册不启动 X11/Wayland，也不保证特定 API 或视频硬编码可用；依赖显示后端的 CEF 无窗口程序仍需可用的显示服务。Intel/AMD 模块保留 WSL 自身的图形桥接策略，不替它启用原生 Linux 驱动注册。32 位支持仍由 workstation 或既有厂商策略控制。修改配置后须构建并激活系统才会更新运行中的驱动链接，仅配置求值或构建不会自动激活。
 - OMP、全栈开发工具和 Podman 由 role/feature 组合，不绑定到某个 profile。
 - VS Code 属于 `fullstack-development` 的桌面 GUI 开发能力，不属于基础桌面包集合；仅在 fullstack-development role、platform.desktop.enable 与 platform.desktop.apps.enable 三者同时启用时安装。
 - `fullstack-development` 通过 `nix-ld` 提供 Playwright 等工具下载的 Chromium 所需运行库（包括提供 `libnspr4.so` 的 `nspr`、NSS、图形与音频库），无需启用桌面。修改后需重新构建并切换系统配置；仅安装用户级包不能替代动态库搜索路径配置。
@@ -229,7 +231,10 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `fullstack-development` | 全栈开发工具（Go、Rust、数据库 CLI 工具；桌面启用时含 VS Code） |
 | `ai-tooling`            | OMP AI 助手、RTK 输出压缩与开发 Shell 环境 |
 | `container-host`        | Podman 容器宿主                                    |
-| `ai-accelerated`        | NVIDIA/CUDA 加速（配合 `machine.nvidia.enable`）  |
+| `gpu-intel`             | Intel 视频驱动；不依赖桌面，也不固定显卡设备 |
+| `gpu-amd`               | AMD 内核驱动策略；不固定显卡设备 |
+| `gpu-nvidia`            | NVIDIA 专有驱动与既有 32 位支持策略 |
+| `ai-accelerated`        | 按已启用的 GPU 厂商 role 追加计算运行时，不替代通用图形注册 |
 | `remote-admin`          | Cockpit 远程管理面板                              |
 
 ### platform 选项参考
@@ -249,7 +254,9 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 | `platform.machine.wsl.enable`                   | bool                     | `false`     | 是否启用 WSL 约束                    |
 | `platform.machine.boot.mode`                    | enum                     | `"uefi"`    | 启动模式：uefi / bios / extlinux       |
 | `platform.machine.boot.grubDevice`              | nullOr string            | `null`      | BIOS 模式下 GRUB 安装磁盘            |
-| `platform.machine.nvidia.enable`                | bool                     | `false`     | 启用 NVIDIA/CUDA                     |
+| `platform.machine.gpu.intel.enable`             | bool                     | `false`     | 启用 Intel 视频驱动                   |
+| `platform.machine.gpu.amd.enable`               | bool                     | `false`     | 启用 AMD 厂商驱动策略                 |
+| `platform.machine.gpu.nvidia.enable`            | bool                     | `false`     | 启用 NVIDIA 厂商驱动策略              |
 | `platform.machine.powerProfiles.enable`         | bool                     | `false`     | 启用通用电源/性能档位切换            |
 | `platform.machine.brightness.enable`            | bool                     | `false`     | 安装内置屏幕与标准背光设备亮度控制工具 |
 | `platform.desktop.enable`                      | bool                     | `false`     | 启用图形桌面环境                    |

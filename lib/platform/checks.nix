@@ -383,6 +383,47 @@ let
         touch $out
       '';
 
+  mkHeadlessGraphicsRegistrationCheck =
+    system: name: host: expectedRegistered:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      cfg = (self.lib.mkHost (host // { inherit system; })).config;
+      registration =
+        cfg.systemd.tmpfiles.settings.graphics-driver."/run/opengl-driver"."L+".argument or null;
+      passes =
+        (registration != null) == expectedRegistered
+        && !cfg.platform.desktop.enable
+        && !cfg.services.xserver.enable;
+    in
+    pkgs.runCommand "${name}-headless-graphics-registration"
+      {
+        pass = if passes then "1" else "0";
+        graphicsDriverRoot = if registration == null then "" else registration;
+        registered = if expectedRegistered then "1" else "0";
+        intelVideo = if cfg.platform.machine.gpu.intel.enable then "1" else "0";
+        amdGraphics = if cfg.platform.machine.gpu.amd.enable then "1" else "0";
+      }
+      ''
+        if [[ "$pass" != 1 ]]; then
+          echo "无桌面图形注册契约不符：${name}，driverRoot=$graphicsDriverRoot" >&2
+          exit 1
+        fi
+        if [[ "$registered" == 1 ]]; then
+          test -s "$graphicsDriverRoot/share/glvnd/egl_vendor.d/50_mesa.json"
+          test -d "$graphicsDriverRoot/lib/dri"
+          test -d "$graphicsDriverRoot/share/vulkan/icd.d"
+          if [[ "$intelVideo" == 1 ]]; then
+            test -e "$graphicsDriverRoot/lib/dri/iHD_drv_video.so"
+          fi
+          if [[ "$amdGraphics" == 1 ]]; then
+            test -e "$graphicsDriverRoot/lib/dri/radeonsi_dri.so"
+          fi
+        else
+          test -z "$graphicsDriverRoot"
+        fi
+        touch $out
+      '';
+
   mkGpuLayeringCheck =
     system: name: host: expected:
     let
@@ -728,8 +769,40 @@ lib.genAttrs systems (
         hosts.example-wsl-dev-container;
 
     example-workstation-graphics-base =
-      mkWorkstationGraphicsBaseCheck system "example-workstation"
-        hosts.example-workstation;
+      mkWorkstationGraphicsBaseCheck system "example-intel-workstation"
+        hosts.example-intel-workstation;
+
+    example-server-headless-graphics = mkHeadlessGraphicsRegistrationCheck system "example-server"
+      (hosts.example-server // { roles = [ ]; }) false;
+
+    example-generic-headless-graphics = mkHeadlessGraphicsRegistrationCheck system "example-cpu-only"
+      (base // {
+        hostname = "example-cpu-only";
+        profiles = [ "generic-linux" ];
+        roles = [ ];
+        extraModules = base.extraModules ++ [ { hardware.cpu.amd.updateMicrocode = true; } ];
+      }) false;
+
+    example-intel-server-headless-graphics = mkHeadlessGraphicsRegistrationCheck system "example-intel-server"
+      (hosts.example-server // { roles = [ "gpu-intel" ]; }) true;
+
+    example-amd-server-headless-graphics = mkHeadlessGraphicsRegistrationCheck system "example-amd-server"
+      (hosts.example-server // { roles = [ "gpu-amd" ]; }) true;
+
+    example-workstation-no-gpu-graphics = mkHeadlessGraphicsRegistrationCheck system "example-workstation-no-gpu"
+      (hosts.example-workstation // {
+        roles = [ ];
+        extraModules = hosts.example-workstation.extraModules ++ [ { platform.desktop.enable = false; } ];
+      }) false;
+
+    example-server-graphics-opt-out = mkHeadlessGraphicsRegistrationCheck system "example-server-opt-out"
+      (hosts.example-server // {
+        roles = [ "gpu-intel" ];
+        extraModules = hosts.example-server.extraModules ++ [ { hardware.graphics.enable = false; } ];
+      }) false;
+
+    example-wsl-native-graphics-excluded = mkHeadlessGraphicsRegistrationCheck system "example-wsl"
+      (hosts.example-wsl // { roles = [ "gpu-intel" ]; }) false;
 
     example-intel-workstation-gpu =
       mkGpuLayeringCheck system "example-intel-workstation" hosts.example-intel-workstation
