@@ -24,24 +24,18 @@ in
     builders-use-substitutes = true;
     download-attempts = 2;
     connect-timeout = 5;
+    # Nix 按缓存的 priority 而非列表顺序选择；显式覆盖服务端声明的优先级。
     substituters =
-      if cfg.machine.overseas then
-        [
-          "https://cache.nixos.org"
-          "https://nix-community.cachix.org"
-          "https://cache.numtide.com"
-          "https://devenv.cachix.org"
-          "https://mic92.cachix.org"
-        ]
-      else
-        [
-          "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-          "https://cache.nixos.org"
-          "https://nix-community.cachix.org"
-          "https://cache.numtide.com"
-          "https://devenv.cachix.org"
-          "https://mic92.cachix.org"
-        ];
+      lib.optionals (!cfg.machine.overseas) [
+        "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
+      ]
+      ++ [
+        "https://cache.nixos.org?priority=40"
+        "https://nix-community.cachix.org?priority=50"
+        "https://devenv.cachix.org?priority=60"
+        "https://mic92.cachix.org?priority=60"
+        "https://cache.numtide.com?priority=70"
+      ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

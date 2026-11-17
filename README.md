@@ -323,9 +323,14 @@ Matt Pocock 的技能仅做 OMP 调用方式适配：模型通过 `read` 读取 
   共享 nixpkgs overlay；改变构建输入会改变 store 路径，可能失去缓存命中。
 - 公共 NixOS 基础模块和本 flake 的 `nixConfig` 均配置 `https://cache.numtide.com`，
   公钥为 `niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=`。
-  这是对 Numtide 构建产物的额外信任，不替代已有缓存。依赖 flake 的 `nixConfig`
-  不替代消费方顶层的缓存配置；首次部署或独立 Home Manager 使用时，需要在构建机
-  的 Nix 配置或顶层 flake 中显式信任该缓存。
+  这是对 Numtide 构建产物的额外信任，不替代已有缓存。缓存 URL 显式设置 `priority`，
+  [数值越小越优先](https://nix.dev/manual/nix/2.34/command-ref/conf-file.html#conf-substituters)，
+  不依赖列表顺序或服务端默认值：清华镜像 `10`、官方源 `40`、Nix Community `50`、
+  devenv/Mic92 第三方源 `60`、Numtide `70`（最低优先级）。
+  `platform.machine.overseas = true` 时不启用清华镜像。
+  依赖 flake 的 `nixConfig` 不替代消费方顶层的缓存配置；首次部署或独立 Home Manager
+  使用时，需要在构建机的 Nix 配置或顶层 flake 中显式信任该缓存，并保留
+  `?priority=70`，避免首次构建时提升 Numtide 的优先级。
 - Numtide 的包从源码编译 Rust native addon 和 Bun CLI。缓存与本地 store 均没有输出时，
   Nix 可回退到源码构建；源码、依赖需可下载或已在 store 中，并需要足够资源及对应架构
   的本地、远程或模拟 builder。锁定输入可重建不等于已验证逐字节一致，本仓库未执行
