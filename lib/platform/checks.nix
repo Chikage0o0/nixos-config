@@ -329,7 +329,6 @@ let
         && cachedOmpInstalled
         && lib.elem "omp" homePackageNames
         && homeCfg.programs.zsh.enable
-        && lib.elem "rtk" homePackageNames
         && ompFilesInstalled;
     in
     pkgs.runCommand "${name}-ai-tooling-dependencies"
@@ -344,7 +343,7 @@ let
       }
       ''
         if [[ "$pass" != 1 ]]; then
-          echo "Expected ai-tooling role to install Numtide's OMP package, standard configuration, shell, and rtk for ${name}." >&2
+          echo "Expected ai-tooling role to install Numtide's OMP package, standard configuration, and shell for ${name}." >&2
           echo "ompProgram=$ompProgram cachedOmp=$cachedOmp" >&2
           echo "omp=$ompInstalled standardOmpFiles=$standardOmpFilesInstalled" >&2
           echo "missingOmpFiles=$missingOmpFilesText" >&2

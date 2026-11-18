@@ -54,7 +54,6 @@ let
     pyrefly
     sqlite
     postgresql
-    just
     gnumake
     tokei
   ];

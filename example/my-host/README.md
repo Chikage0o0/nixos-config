@@ -247,7 +247,7 @@ scripts/reinstall.sh server root@1.2.3.4 /dev/disk/by-id/<disk-id>
 
 ## OMP 配置
 
-`ai-tooling` role 通过 OMP 官方 Home Manager module 安装第一方源码构建包，并以 `mkDefault` 启用 `programs.omp.enable`、shell 与 RTK。公共模块会低优先级部署 `config.yml`、`AGENTS.md`、`skills/` 和 `.skill-lock.json`；`programs.omp.settings` 或调用方的 `home.file` 可覆盖对应标准文件。
+`ai-tooling` role 通过 OMP 官方 Home Manager module 安装第一方源码构建包，并以 `mkDefault` 启用 `programs.omp.enable` 与 shell。公共模块会低优先级部署 `config.yml`、`AGENTS.md`、`skills/` 和 `.skill-lock.json`；`programs.omp.settings` 或调用方的 `home.file` 可覆盖对应标准文件。
 
 若不使用 OMP，从主机的 `roles` 中删除 `ai-tooling`。需要保留 role 但关闭或调整 OMP 时，通过 host `extraModules` 提供 Home Manager shared module：
 
