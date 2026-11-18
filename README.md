@@ -287,6 +287,8 @@ scripts/add-host.sh wsl-work x86_64-linux wsl
 
 公共 Home Manager 模块会在 `programs.omp.enable = true` 时以低优先级部署标准 `AGENTS.md`、skills、`.skill-lock.json` 和默认 `config.yml`。设置 `programs.omp.settings` 后，OMP 官方模块会在 Home Manager activation 中以可写普通文件覆盖默认 `config.yml`，允许 OMP 运行时加锁和改写；下一次 `home-manager switch` 会恢复声明值。其他标准资产仍可由调用方直接声明 `home.file` 覆盖；仓库不再维护第二套 OMP Interface。
 
+[标准 `AGENTS.md`](modules/home/omp/agent/AGENTS.md) 定义通用决策边界：可撤销的实现细节按项目惯例推进，外部写入等敏感操作按授权清单确认，交付时区分实测结果与假设。模型选择和项目专用的代理分工不在此文件配置。
+
 标准 skills 位于 `modules/home/omp/agent/skills/`，包含 30 个技能及其参考文档、脚本和许可证。当前集合由以下固定快照组成：
 
 | 来源 | 范围 | 固定版本 |
